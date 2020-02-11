@@ -1,0 +1,19 @@
+{
+  "name": "otto",
+  "version": "1.0.0",
+  "description": "Spy library in training.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ekim088/otto.git"
+  },
+  "author": "Edward Kim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ekim088/otto/issues"
+  },
+  "homepage": "https://github.com/ekim088/otto#readme"
+}
