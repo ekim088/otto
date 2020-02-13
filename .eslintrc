@@ -1,0 +1,16 @@
+{
+	"extends": [
+		"airbnb-base",
+		"plugin:flowtype/recommended",
+		"prettier"
+	],
+	"plugins": ["flowtype", "prettier"],
+	"rules": {
+		"prettier/prettier": ["error"]
+	},
+	"settings": {
+		"flowtype": {
+			"onlyFilesWithFlowAnnotation": true
+		}
+	}
+}

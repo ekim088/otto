@@ -1,19 +1,73 @@
 {
-  "name": "otto",
-  "version": "1.0.0",
-  "description": "Spy library in training.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/ekim088/otto.git"
-  },
-  "author": "Edward Kim",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/ekim088/otto/issues"
-  },
-  "homepage": "https://github.com/ekim088/otto#readme"
+	"name": "otto",
+	"version": "0.0.1",
+	"description": "Spy library in training.",
+	"main": "index.js",
+	"scripts": {
+		"build": "rollup -c",
+		"build:watch": "rollup -c -w",
+		"clean": "rm -rf dist/*",
+		"lint": "eslint --fix .",
+		"precommit": "lint-staged",
+		"test": "jest src --passWithNoTests",
+		"test:coverage": "jest src --passWithNoTests --coverage",
+		"test:watch": "jest --watchAll --notify",
+		"version": "auto-changelog -p && git add CHANGELOG.md"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+ssh://git@github.com/ekim088/otto.git"
+	},
+	"author": "Edward Kim",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/ekim088/otto/issues"
+	},
+	"homepage": "https://github.com/ekim088/otto#readme",
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"lint-staged": {
+		"*.{js,jsx}": [
+			"npm run lint",
+			"npm run test",
+			"git add"
+		],
+		"*.{json,md}": [
+			"prettier --write",
+			"git add"
+		]
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.8.4",
+		"@babel/core": "^7.8.4",
+		"@babel/plugin-transform-runtime": "^7.8.3",
+		"@babel/preset-env": "^7.8.4",
+		"@babel/preset-flow": "^7.8.3",
+		"@rollup/plugin-node-resolve": "^7.1.1",
+		"auto-changelog": "^1.16.2",
+		"babel-eslint": "^10.0.3",
+		"babel-jest": "^25.1.0",
+		"eslint": "^6.8.0",
+		"eslint-config-airbnb-base": "^14.0.0",
+		"eslint-config-prettier": "^6.10.0",
+		"eslint-plugin-flowtype": "^4.6.0",
+		"eslint-plugin-import": "^2.20.1",
+		"eslint-plugin-prettier": "^3.1.2",
+		"flow-bin": "^0.118.0",
+		"flow-typed": "^2.6.2",
+		"husky": "^4.2.3",
+		"jest": "^25.1.0",
+		"lint-staged": "^10.0.7",
+		"prettier": "^1.19.1",
+		"rollup": "^1.31.0",
+		"rollup-plugin-babel": "^4.3.3",
+		"rollup-plugin-uglify": "^6.0.4",
+		"rollup-plugin-visualizer": "^3.3.1"
+	},
+	"dependencies": {
+		"@babel/runtime": "^7.8.4"
+	}
 }

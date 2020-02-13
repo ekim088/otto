@@ -1,0 +1,20 @@
+[ignore]
+<PROJECT_ROOT>/node_modules/.*
+<PROJECT_ROOT>/dist/.*
+<PROJECT_ROOT>/src/__tests__/.*
+
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+module.file_ext=.js
+module.file_ext=.jsx
+module.file_ext=.json
+# uncomment below to enable CSS module imports in react
+# module.file_ext=.css
+# module.file_ext=.scss
+
+[strict]
