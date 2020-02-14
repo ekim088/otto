@@ -69,4 +69,13 @@ describe('lib/Spy', () => {
 		mockContext.toBeSpiedUpon();
 		expect(mockContext.toBeCalledByBeforeAfter).toHaveBeenCalled();
 	});
+
+	it('should continue calling methods within the chain after an exception occurs', () => {
+		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy.before = function() {
+			throw new Error('throwing a test error');
+		};
+		mockContext.toBeSpiedUpon();
+		expect(originalFunction).toHaveBeenCalled();
+	});
 });
