@@ -5,6 +5,11 @@ export default class Spy {
 
 	before: ?() => mixed;
 
+	calls: Array<{
+		arguments: Array<any>,
+		return: any
+	}>;
+
 	callThrough: boolean;
 
 	originalFunction: ?() => mixed;
@@ -26,6 +31,7 @@ export default class Spy {
 		functionName: string,
 		callThrough: boolean = false
 	) {
+		this.calls = [];
 		this.callThrough = callThrough;
 		this.originalFunction = context[functionName];
 		this.spiedFunctionContext = context;
@@ -66,6 +72,12 @@ export default class Spy {
 							`an error occurred while calling the spied function: ${error.message}`
 						);
 					}
+
+					// add spied function call to call log
+					this.calls.push({
+						arguments: Array.from(args),
+						return: returnVal
+					});
 				}
 
 				if (typeof this.after === 'function') {

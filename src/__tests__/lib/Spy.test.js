@@ -100,4 +100,15 @@ describe('lib/Spy', () => {
 		expect(spy.before).not.toHaveBeenCalled();
 		expect(spy.after).not.toHaveBeenCalled();
 	});
+
+	it('should maintain a log of calls to the spied function', () => {
+		mockContext.sum = (num1, num2) => num1 + num2;
+		spy = new Spy(mockContext, 'sum', true);
+		expect(spy.calls.length).toEqual(0);
+
+		expect(mockContext.sum(1, 1)).toEqual(2);
+		expect(spy.calls.length).toEqual(1);
+		expect(spy.calls[0].arguments).toEqual([1, 1]);
+		expect(spy.calls[0].return).toEqual(2);
+	});
 });
