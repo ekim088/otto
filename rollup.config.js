@@ -17,7 +17,7 @@ const pluginResolve = resolve({
 module.exports = {
 	input: 'src/index.js',
 	output: {
-		file: 'dist/otto.js',
+		file: 'dist/index.js',
 		format: 'es',
 		sourcemap: true
 	},

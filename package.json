@@ -2,7 +2,10 @@
 	"name": "otto",
 	"version": "0.0.1",
 	"description": "Spy library in training.",
-	"main": "index.js",
+	"main": "dist/index.js",
+	"files": [
+		"dist/**/*"
+	],
 	"scripts": {
 		"build": "rollup -c",
 		"build:watch": "rollup -c -w",
@@ -55,6 +58,7 @@
 		"eslint-config-prettier": "^6.10.0",
 		"eslint-plugin-flowtype": "^4.6.0",
 		"eslint-plugin-import": "^2.20.1",
+		"eslint-plugin-jest": "^23.7.0",
 		"eslint-plugin-prettier": "^3.1.2",
 		"flow-bin": "^0.118.0",
 		"flow-typed": "^2.6.2",
