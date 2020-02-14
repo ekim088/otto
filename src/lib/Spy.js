@@ -1,11 +1,15 @@
 // @flow
 export default class Spy {
 	// flow annotations
+	after: ?() => mixed;
+
+	before: ?() => mixed;
+
 	callThrough: boolean;
 
-	originalFunction: Function;
+	originalFunction: () => mixed;
 
-	spiedFunctionContext: Object;
+	spiedFunctionContext: any;
 
 	spiedFunctionName: string;
 
@@ -18,7 +22,7 @@ export default class Spy {
 	 * 	spied function should be initiated when called.
 	 */
 	constructor(
-		context: Object,
+		context: any,
 		functionName: string,
 		callThrough: boolean = false
 	) {
@@ -32,19 +36,48 @@ export default class Spy {
 	}
 
 	decorateFunction() {
-		this.spiedFunctionContext[this.spiedFunctionName] = (...args) => {
+		this.spiedFunctionContext[this.spiedFunctionName] = (
+			...args: Array<any>
+		) => {
 			console.log(`spied on ${this.spiedFunctionName}`);
 
-			if (this.callThrough) {
-				// before
-				// ...
+			if (!this.callThrough) {
+				return;
+			}
 
-				// call original function
+			// before
+			if (typeof this.before === 'function') {
+				try {
+					this.before.call(this.spiedFunctionContext);
+				} catch (error) {
+					console.log(
+						`an error occurred while calling a function before ${this.spiedFunctionName}`
+					);
+					throw error;
+				}
+			}
+
+			// call original function
+			try {
 				console.log(`calling original ${this.spiedFunctionName}`);
 				this.originalFunction.apply(this.spiedFunctionContext, args);
+			} catch (error) {
+				console.log(
+					`an error occurred while calling ${this.spiedFunctionName}`
+				);
+				throw error;
+			}
 
-				// after
-				// ...
+			// after
+			if (typeof this.after === 'function') {
+				try {
+					this.after.call(this.spiedFunctionContext);
+				} catch (error) {
+					console.log(
+						`an error occurred while calling a function after ${this.spiedFunctionName}`
+					);
+					throw error;
+				}
 			}
 		};
 	}
