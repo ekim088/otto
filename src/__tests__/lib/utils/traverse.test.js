@@ -1,4 +1,4 @@
-import traverse from '../../lib/utils/traverse';
+import traverse from '../../../lib/utils/traverse';
 
 describe('utils/traverse', () => {
 	const testObject = {
