@@ -7,7 +7,7 @@ export default class Spy {
 
 	callThrough: boolean;
 
-	originalFunction: () => mixed;
+	originalFunction: ?() => mixed;
 
 	spiedFunctionContext: any;
 
@@ -38,23 +38,48 @@ export default class Spy {
 	decorateFunction() {
 		this.spiedFunctionContext[this.spiedFunctionName] = (
 			...args: Array<any>
-		) => {
+		): any => {
+			let returnVal: any;
+
 			console.log(`spied on ${this.spiedFunctionName}`);
 
-			if (!this.callThrough) {
-				return;
-			}
-
 			// call functions
-			[this.before, this.originalFunction, this.after].forEach(fxn => {
-				if (typeof fxn === 'function') {
+			if (this.callThrough) {
+				if (typeof this.before === 'function') {
 					try {
-						fxn.apply(this.spiedFunctionContext, args);
+						this.before.call(this.spiedFunctionContext);
 					} catch (error) {
-						console.error(`an error occurred while spying: ${error.message}`);
+						console.error(
+							`an error occurred while calling before: ${error.message}`
+						);
 					}
 				}
-			});
+
+				if (typeof this.originalFunction === 'function') {
+					try {
+						returnVal = this.originalFunction.apply(
+							this.spiedFunctionContext,
+							args
+						);
+					} catch (error) {
+						console.error(
+							`an error occurred while calling the spied function: ${error.message}`
+						);
+					}
+				}
+
+				if (typeof this.after === 'function') {
+					try {
+						this.after.call(this.spiedFunctionContext);
+					} catch (error) {
+						console.error(
+							`an error occurred while calling after: ${error.message}`
+						);
+					}
+				}
+			}
+
+			return returnVal;
 		};
 	}
 

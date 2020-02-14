@@ -78,4 +78,26 @@ describe('lib/Spy', () => {
 		mockContext.toBeSpiedUpon();
 		expect(originalFunction).toHaveBeenCalled();
 	});
+
+	it('should maintain the same return as the spied function', () => {
+		mockContext.newFunction = () => 'success';
+		spy = new Spy(mockContext, 'newFunction', true);
+		spy.before = jest.fn(() => 'failure');
+		spy.after = jest.fn(() => 'failure');
+		const result = mockContext.newFunction();
+		expect(spy.before).toHaveBeenCalled();
+		expect(spy.after).toHaveBeenCalled();
+		expect(result).toEqual('success');
+	});
+
+	it('should revert the spied function on reset', () => {
+		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy.before = jest.fn();
+		spy.after = jest.fn();
+		spy.reset();
+		mockContext.toBeSpiedUpon();
+		expect(originalFunction).toHaveBeenCalled();
+		expect(spy.before).not.toHaveBeenCalled();
+		expect(spy.after).not.toHaveBeenCalled();
+	});
 });
