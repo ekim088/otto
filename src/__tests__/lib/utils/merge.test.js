@@ -80,4 +80,35 @@ describe('utils/merge', () => {
 		const val2 = 'primitive';
 		expect(merge(val1, val2)).toEqual('primitive');
 	});
+
+	it('should apply function props onto a base object or function', () => {
+		const sum = (num1, num2) => num1 + num2;
+		const someFunction = () => null;
+		const someObject = {};
+		sum.a = 1;
+		sum.b = { c: 3 };
+		merge(someFunction, sum);
+		expect(someFunction.a).toEqual(sum.a);
+		expect(someFunction.b).not.toBe(sum.b);
+		expect(someFunction.b).toStrictEqual(sum.b);
+
+		merge(someObject, sum);
+		expect(someObject.b).not.toBe(sum.b);
+		expect(someObject).toStrictEqual({
+			a: 1,
+			b: { c: 3 }
+		});
+	});
+
+	it('should merge an array into an object', () => {
+		const arr = [1, 2, 3];
+		const merged = merge({ a: 1 }, arr);
+		const expectedMerge = {
+			a: 1,
+			'0': 1,
+			'1': 2,
+			'2': 3
+		};
+		expect(merged).toStrictEqual(expectedMerge);
+	});
 });

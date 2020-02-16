@@ -10,8 +10,11 @@ export default function merge(obj1: any, ...args: Array<any>): any {
 	let mergedObj = obj1;
 
 	args.forEach(objToMerge => {
-		if (typeof objToMerge === 'object') {
-			if (typeof mergedObj !== 'object') {
+		if (
+			(typeof objToMerge === 'object' && objToMerge !== null) ||
+			typeof objToMerge === 'function'
+		) {
+			if (typeof mergedObj !== 'object' && typeof objToMerge !== 'function') {
 				mergedObj = {};
 			}
 
