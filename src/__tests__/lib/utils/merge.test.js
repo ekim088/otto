@@ -7,7 +7,8 @@ describe('utils/merge', () => {
 			b: {
 				c: 3,
 				d: 4
-			}
+			},
+			e: 1
 		};
 		const obj2 = {
 			e: 5,
@@ -31,7 +32,27 @@ describe('utils/merge', () => {
 		expect(merge(obj1, obj2)).toStrictEqual(expectedObj);
 	});
 
-	it('should not alter the second object when merging two objects', () => {
+	it('should accept any number of objects to merge into the base object', () => {
+		const obj1 = { a: 1, c: 3 };
+		const obj2 = { b: 2 };
+		const obj3 = {
+			c: {
+				d: 4,
+				e: 5
+			}
+		};
+		const expectedObj = {
+			a: 1,
+			b: 2,
+			c: {
+				d: 4,
+				e: 5
+			}
+		};
+		expect(merge(obj1, obj2, obj3)).toStrictEqual(expectedObj);
+	});
+
+	it('should not alter the objects being merged in', () => {
 		const obj1 = {
 			a: 1,
 			b: {
@@ -48,6 +69,8 @@ describe('utils/merge', () => {
 			}
 		};
 		merge(obj1, obj2);
+		expect(obj1.b.f).not.toBe(obj2.b.f);
+
 		obj1.b.f = 'updated';
 		expect(obj2.b.f).toStrictEqual({ g: 7 });
 	});
