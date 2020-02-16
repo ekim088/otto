@@ -2,10 +2,18 @@
 import merge from './merge';
 
 /**
- * Performs a deep copy of an object.
- * @param {*} obj The original object.
- * @returns {*} A clone of the original object.
+ * Performs a deep copy of the original input.
+ * @param {*} orig The original input.
+ * @returns {*} A clone of the original input.
  */
-export default function clone(obj: any): any {
-	return typeof obj === 'object' ? merge({}, obj) : obj;
+export default function clone(orig: any): any {
+	let cloned = orig;
+
+	if (Array.isArray(orig)) {
+		cloned = orig.slice(0);
+	} else if (typeof orig === 'object' && orig !== null) {
+		cloned = merge({}, orig);
+	}
+
+	return cloned;
 }

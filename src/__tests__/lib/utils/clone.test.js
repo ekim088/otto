@@ -1,7 +1,7 @@
 import clone from '../../../lib/utils/clone';
 
 describe('utils/clone', () => {
-	it('should make a deep copy of an object', () => {
+	it('should deep copy an object', () => {
 		const original = {
 			a: 1,
 			b: {
@@ -10,14 +10,21 @@ describe('utils/clone', () => {
 			}
 		};
 		const clonedObj = clone(original);
+		expect(clonedObj).not.toBe(original);
 		expect(clonedObj).toStrictEqual(original);
-
-		clonedObj.b.c = 100;
-		expect(original.b.c).toStrictEqual(3);
 	});
 
-	it('should return the original input if it is not an object', () => {
+	it('should clone an array', () => {
+		const original = [1, 2, 3];
+		const clonedArr = clone(original);
+		expect(clonedArr).not.toBe(original);
+		expect(clonedArr).toStrictEqual(original);
+		expect(Array.isArray(clonedArr)).toEqual(true);
+	});
+
+	it('should return the original input if it is a primitive value', () => {
 		expect(clone(undefined)).toBe(undefined);
+		expect(clone(null)).toBe(null);
 		expect(clone(0)).toBe(0);
 		expect(clone('')).toBe('');
 	});
