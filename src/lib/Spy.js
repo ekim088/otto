@@ -7,53 +7,52 @@ export default class Spy {
 
 	calls: Array<{
 		arguments: Array<any>,
-		return: any
+		return: mixed
 	}>;
 
 	callThrough: boolean;
 
-	originalFunction: ?() => mixed;
-
-	spiedFunctionContext: any;
-
-	spiedFunctionName: string;
+	reset: () => void;
 
 	/**
 	 * Monitor and respond to function calls.
 	 * @constructor
 	 * @param {Object} context The context containing the spied function.
-	 * @param {string} functionName The name of the function to spy on.
-	 * @param {boolean} [callThrough] Whether the standard functionality of the
-	 * 	spied function should be initiated when called.
+	 * @param {string} propKey The name of the property to spy on
 	 */
-	constructor(
-		context: any,
-		functionName: string,
-		callThrough: boolean = false
-	) {
+	constructor(context: any, propKey: string) {
 		this.calls = [];
-		this.callThrough = callThrough;
-		this.originalFunction = context[functionName];
-		this.spiedFunctionContext = context;
-		this.spiedFunctionName = functionName;
+		this.callThrough = true;
+
+		// initialize reset method
+		const originalVal = context[propKey];
+		const propContext = context;
+		this.reset = () => {
+			propContext[propKey] = originalVal;
+		};
 
 		// initiate spying
-		this.decorateFunction();
+		this.decorateFunction(context, propKey);
 	}
 
-	decorateFunction() {
-		this.spiedFunctionContext[this.spiedFunctionName] = (
-			...args: Array<any>
-		): any => {
-			let returnVal: any;
+	/**
+	 * Decorates a function to be spied upon.
+	 * @param {Object} context The context of the function to spy on.
+	 * @param {string} functionName The name of the function to spy on.
+	 */
+	decorateFunction(context: any, functionName: string): void {
+		const functionContext: any = context;
+		const originalFunction: () => mixed = context[functionName];
+		const decoratedFunction: () => mixed = (...args: Array<any>): mixed => {
+			let returnVal: mixed;
 
-			console.log(`spied on ${this.spiedFunctionName}`);
+			console.log(`spied on ${functionName}`);
 
 			// call functions
 			if (this.callThrough) {
 				if (typeof this.before === 'function') {
 					try {
-						this.before.call(this.spiedFunctionContext);
+						this.before.apply(functionContext);
 					} catch (error) {
 						console.error(
 							`an error occurred while calling before: ${error.message}`
@@ -61,28 +60,23 @@ export default class Spy {
 					}
 				}
 
-				if (typeof this.originalFunction === 'function') {
-					try {
-						returnVal = this.originalFunction.apply(
-							this.spiedFunctionContext,
-							args
-						);
-					} catch (error) {
-						console.error(
-							`an error occurred while calling the spied function: ${error.message}`
-						);
-					}
+				try {
+					returnVal = originalFunction.apply(functionContext, args);
 
 					// add spied function call to call log
 					this.calls.push({
 						arguments: Array.from(args),
 						return: returnVal
 					});
+				} catch (error) {
+					console.error(
+						`an error occurred while calling the spied function: ${error.message}`
+					);
 				}
 
 				if (typeof this.after === 'function') {
 					try {
-						this.after.call(this.spiedFunctionContext);
+						this.after.apply(functionContext);
 					} catch (error) {
 						console.error(
 							`an error occurred while calling after: ${error.message}`
@@ -93,9 +87,7 @@ export default class Spy {
 
 			return returnVal;
 		};
-	}
 
-	reset() {
-		this.spiedFunctionContext[this.spiedFunctionName] = this.originalFunction;
+		functionContext[functionName] = decoratedFunction;
 	}
 }

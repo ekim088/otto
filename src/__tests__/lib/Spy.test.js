@@ -19,7 +19,7 @@ describe('lib/Spy', () => {
 	afterEach(() => spy && spy.reset());
 
 	it('should decorate the function to spy on', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		expect(mockContext.toBeSpiedUpon).not.toBe(originalFunction);
 
 		mockContext.toBeSpiedUpon();
@@ -27,26 +27,27 @@ describe('lib/Spy', () => {
 	});
 
 	it('should call the function being spied upon with the correct arguments', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		mockContext.toBeSpiedUpon('arg1', 'arg2', ['arg3']);
 		expect(originalFunction).toHaveBeenCalledWith('arg1', 'arg2', ['arg3']);
 	});
 
 	it('should not call spied function if callThrough is disabled', () => {
 		spy = new Spy(mockContext, 'toBeSpiedUpon');
+		spy.callThrough = false;
 		mockContext.toBeSpiedUpon();
 		expect(originalFunction).not.toHaveBeenCalled();
 	});
 
 	it('should call the before function before the spied function', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		spy.before = jest.fn();
 		mockContext.toBeSpiedUpon();
 		expect(spy.before).toHaveBeenCalledBefore(originalFunction);
 	});
 
 	it('should call the before function with the same context as the spied function', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		spy.before = function() {
 			this.toBeCalledByBeforeAfter();
 		};
@@ -55,14 +56,14 @@ describe('lib/Spy', () => {
 	});
 
 	it('should call the after function after the spied function', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		spy.after = jest.fn();
 		mockContext.toBeSpiedUpon();
 		expect(spy.after).toHaveBeenCalledAfter(originalFunction);
 	});
 
 	it('should call the after function with the same context as the spied function', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		spy.after = function() {
 			this.toBeCalledByBeforeAfter();
 		};
@@ -71,7 +72,7 @@ describe('lib/Spy', () => {
 	});
 
 	it('should continue calling methods within the chain after an exception occurs', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		spy.before = function() {
 			throw new Error('throwing a test error');
 		};
@@ -81,7 +82,7 @@ describe('lib/Spy', () => {
 
 	it('should maintain the same return as the spied function', () => {
 		mockContext.newFunction = () => 'success';
-		spy = new Spy(mockContext, 'newFunction', true);
+		spy = new Spy(mockContext, 'newFunction');
 		spy.before = jest.fn(() => 'failure');
 		spy.after = jest.fn(() => 'failure');
 		const result = mockContext.newFunction();
@@ -91,7 +92,7 @@ describe('lib/Spy', () => {
 	});
 
 	it('should revert the spied function on reset', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon', true);
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		spy.before = jest.fn();
 		spy.after = jest.fn();
 		spy.reset();
@@ -103,7 +104,7 @@ describe('lib/Spy', () => {
 
 	it('should maintain a log of calls to the spied function', () => {
 		mockContext.sum = (num1, num2) => num1 + num2;
-		spy = new Spy(mockContext, 'sum', true);
+		spy = new Spy(mockContext, 'sum');
 		expect(spy.calls.length).toEqual(0);
 
 		expect(mockContext.sum(1, 1)).toEqual(2);
