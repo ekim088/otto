@@ -1,6 +1,8 @@
 // @flow
 export default class Spy {
 	// flow annotations
+	addSpy: Spy => number;
+
 	after: ?() => mixed;
 
 	before: ?() => mixed;
@@ -24,10 +26,18 @@ export default class Spy {
 		this.calls = [];
 		this.callThrough = true;
 
+		/**
+		 * Additional Spies deployed by this Spy to spy on custom methods
+		 * attached to the original function being spied on.
+		 */
+		const additionalSpies: Array<Spy> = [];
+		this.addSpy = spy => additionalSpies.push(spy);
+
 		// initialize reset method
 		const originalVal = context[propKey];
 		const propContext = context;
 		this.reset = () => {
+			additionalSpies.forEach((spy: Spy): void => spy.reset());
 			propContext[propKey] = originalVal;
 		};
 
@@ -88,6 +98,17 @@ export default class Spy {
 			return returnVal;
 		};
 
+		// spy on custom function props that exist on original function
+		Object.keys(originalFunction).forEach((prop: string): void => {
+			if (typeof originalFunction[prop] === 'function') {
+				this.addSpy(new Spy(originalFunction, prop));
+			}
+
+			// point to original function prop on decorated function
+			decoratedFunction[prop] = originalFunction[prop];
+		});
+
+		// replace original function with decorated function
 		functionContext[functionName] = decoratedFunction;
 	}
 }

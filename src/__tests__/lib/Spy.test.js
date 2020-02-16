@@ -112,4 +112,34 @@ describe('lib/Spy', () => {
 		expect(spy.calls[0].arguments).toEqual([1, 1]);
 		expect(spy.calls[0].return).toEqual(2);
 	});
+
+	it('should spy on custom prop methods that may have been applied to the spied function', () => {
+		mockContext.someFunction = () => null;
+		mockContext.someFunction.testProp = 0;
+		mockContext.someFunction.testMethod = function() {
+			this.testProp += 1;
+		};
+		originalFunction = mockContext.someFunction;
+		const originalPropMethod = mockContext.someFunction.testMethod;
+		spy = new Spy(mockContext, 'someFunction');
+		expect(mockContext.someFunction.testMethod).not.toBe(originalPropMethod);
+
+		mockContext.someFunction.testMethod();
+		expect(originalFunction.testProp).toEqual(1);
+	});
+
+	it('should reset spies on custom prop methods when resetting the originally spied method', () => {
+		mockContext.someFunction = () => null;
+		mockContext.someFunction.testMethod1 = function() {};
+		mockContext.someFunction.testMethod2 = function() {};
+		const originalPropMethod1 = mockContext.someFunction.testMethod1;
+		const originalPropMethod2 = mockContext.someFunction.testMethod2;
+		spy = new Spy(mockContext, 'someFunction');
+		expect(mockContext.someFunction.testMethod1).not.toBe(originalPropMethod1);
+		expect(mockContext.someFunction.testMethod2).not.toBe(originalPropMethod2);
+
+		spy.reset();
+		expect(mockContext.someFunction.testMethod1).toBe(originalPropMethod1);
+		expect(mockContext.someFunction.testMethod2).toBe(originalPropMethod2);
+	});
 });
