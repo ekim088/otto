@@ -109,13 +109,17 @@ describe('lib/Spy', () => {
 
 		mockContext.sum(1, 1);
 		expect(mockContext.sum.calls.length).toEqual(1);
-		expect(mockContext.sum.calls[0].args).toEqual([1, 1]);
-		expect(mockContext.sum.calls[0].return).toEqual(2);
+		expect(mockContext.sum.calls[0]).toStrictEqual({
+			args: [1, 1],
+			return: 2
+		});
 
 		mockContext.sum(5, '6');
 		expect(mockContext.sum.calls.length).toEqual(2);
-		expect(mockContext.sum.calls[1].args).toStrictEqual([5, '6']);
-		expect(mockContext.sum.calls[1].return).toStrictEqual('56');
+		expect(mockContext.sum.calls[1]).toStrictEqual({
+			args: [5, '6'],
+			return: '56'
+		});
 	});
 
 	it('should remove the log of calls to the spied function on reset', () => {
