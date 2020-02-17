@@ -10,7 +10,7 @@ export default function clone(orig: any): any {
 	let cloned = orig;
 
 	if (Array.isArray(orig)) {
-		cloned = orig.slice(0);
+		cloned = orig.map(el => clone(el));
 	} else if (typeof orig === 'object' && orig !== null) {
 		cloned = merge({}, orig);
 	}

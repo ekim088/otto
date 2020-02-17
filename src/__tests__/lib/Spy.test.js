@@ -148,6 +148,21 @@ describe('lib/Spy', () => {
 		expect(typeof mockContext.sum.calls).toEqual('undefined');
 	});
 
+	it('should make copies of original arguments and returns in the call log', () => {
+		mockContext.sum = (num1, num2) => num1 + num2;
+		spy = new Spy(mockContext, 'sum');
+		const obj = { a: 1 };
+
+		mockContext.sum(1, obj);
+		expect(mockContext.sum.calls[0]).toStrictEqual({
+			args: [1, { a: 1 }],
+			return: '1[object Object]'
+		});
+
+		obj.a = 3;
+		expect(mockContext.sum.calls[0].args[1].a).toEqual(1);
+	});
+
 	it('should spy on custom prop methods that may have been applied to the spied function', () => {
 		mockContext.someFunction = () => null;
 		mockContext.someFunction.testProp = 0;

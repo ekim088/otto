@@ -1,4 +1,5 @@
 // @flow
+import clone from './utils/clone';
 import logger from './utils/logger';
 
 type CallEntry = {
@@ -74,7 +75,7 @@ export default class Spy {
 		): mixed {
 			// generate initial call object for logging
 			const call: CallEntry = {
-				args: Array.from(args),
+				args: clone(Array.from(args)),
 				return: undefined
 			};
 			let returnVal: mixed;
@@ -95,7 +96,7 @@ export default class Spy {
 
 				try {
 					returnVal = originalFunction.apply(functionContext, args);
-					call.return = returnVal;
+					call.return = clone(returnVal);
 				} catch (error) {
 					logger.error(
 						`an error occurred while calling the spied function: ${error.message}`

@@ -10,16 +10,20 @@ describe('utils/clone', () => {
 			}
 		};
 		const clonedObj = clone(original);
-		expect(clonedObj).not.toBe(original);
 		expect(clonedObj).toStrictEqual(original);
+
+		clonedObj.a = 2;
+		expect(original.a).toEqual(1);
 	});
 
-	it('should clone an array', () => {
+	it('should deep copy an array', () => {
 		const original = [1, 2, 3];
 		const clonedArr = clone(original);
-		expect(clonedArr).not.toBe(original);
 		expect(clonedArr).toStrictEqual(original);
 		expect(Array.isArray(clonedArr)).toEqual(true);
+
+		clonedArr[1] = 10;
+		expect(original[1]).toEqual(2);
 	});
 
 	it('should return the original input if it is an unsupported type', () => {
