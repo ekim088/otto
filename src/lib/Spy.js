@@ -67,15 +67,22 @@ export default class Spy {
 			functionName
 		);
 
-		// spy on custom function props that exist on original function
-		Object.keys(originalFunction).forEach((prop: string): void => {
-			if (typeof originalFunction[prop] === 'function' && prop !== 'calls') {
-				this.addSpy(new Spy(originalFunction, prop));
-			}
+		/**
+		 * Spy on custom function props that exist on original function.
+		 * Generate list of reserved props ie. props that have been applied
+		 * by decorator to prevent overwrite of props required by spy.
+		 */
+		const reservedProps: Array<string> = Object.keys(decoratedFunction);
+		Object.keys(originalFunction)
+			.filter((prop: string): boolean => reservedProps.indexOf(prop) === -1)
+			.forEach((prop: string): void => {
+				if (typeof originalFunction[prop] === 'function') {
+					this.addSpy(new Spy(originalFunction, prop));
+				}
 
-			// point to original function prop on decorated function
-			decoratedFunction[prop] = originalFunction[prop];
-		});
+				// point to original function prop on decorated function
+				decoratedFunction[prop] = originalFunction[prop];
+			});
 
 		// replace original function with decorated function
 		functionContext[functionName] = decoratedFunction;

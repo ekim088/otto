@@ -178,6 +178,17 @@ describe('lib/Spy', () => {
 		expect(originalFunction.testProp).toEqual(1);
 	});
 
+	it('should not overwrite function props that are required for spying', () => {
+		mockContext.someFunction = () => null;
+		mockContext.someFunction.calls = 'invalid value';
+		spy = new Spy(mockContext, 'someFunction');
+		expect(mockContext.someFunction.calls).not.toBe('invalid value');
+
+		mockContext.someFunction.calls = 'overwriting';
+		mockContext.someFunction();
+		expect(mockContext.someFunction.calls).not.toBe('overwriting');
+	});
+
 	it('should reset spies on custom prop methods when resetting the originally spied method', () => {
 		mockContext.someFunction = () => null;
 		mockContext.someFunction.testMethod1 = function() {};
