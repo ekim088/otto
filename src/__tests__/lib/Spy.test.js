@@ -1,5 +1,5 @@
-import Spy from '../../lib/Spy';
 import logger from '../../lib/utils/logger';
+import Spy from '../../lib/Spy';
 
 describe('lib/Spy', () => {
 	let mockContext;

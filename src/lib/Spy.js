@@ -1,21 +1,11 @@
 // @flow
-import clone from './utils/clone';
-import logger from './utils/logger';
-
-type CallEntry = {
-	args: Array<Array<any>>,
-	return: any
-};
-
-type DecoratedFunction = {
-	(): mixed,
-	calls: Array<CallEntry>
-};
+import type { DecoratedFunction } from './utils/spyFunctionDecorator';
+import spyFunctionDecorator from './utils/spyFunctionDecorator';
 
 // Maintains a list of all instantiated spies.
 const spyList = [];
 
-class Spy {
+export default class Spy {
 	// flow annotations
 	addSpy: Spy => number;
 
@@ -48,9 +38,9 @@ class Spy {
 		this.addSpy = spy => additionalSpies.push(spy);
 
 		// initialize reset method
-		const originalVal = context[propKey];
-		const propContext = context;
-		this.reset = () => {
+		const originalVal: mixed = context[propKey];
+		const propContext: any = context;
+		this.reset = (): void => {
 			additionalSpies.forEach((spy: Spy): void => spy.reset());
 			propContext[propKey] = originalVal;
 		};
@@ -69,75 +59,23 @@ class Spy {
 	 * @param {string} functionName The name of the function to spy on.
 	 */
 	decorateFunction(context: any, functionName: string): void {
-		const that = this;
 		const functionContext: any = context;
 		const originalFunction: () => mixed = context[functionName];
-		const decoratedFunction: DecoratedFunction = function decoratedFunction(
-			...args: Array<any>
-		): mixed {
-			// call `fake` function instead of original if defined
-			const baseFunction =
-				typeof that.fake === 'function' ? that.fake : originalFunction;
-
-			// generate initial call object for logging
-			const call: CallEntry = {
-				args: clone(Array.from(args)),
-				return: undefined
-			};
-			let returnVal: mixed;
-
-			logger.info(`spied on ${functionName}`);
-
-			// call functions
-			if (that.callThrough) {
-				if (typeof that.before === 'function') {
-					try {
-						that.before.apply(functionContext);
-					} catch (error) {
-						logger.error(
-							`an error occurred while calling before: ${error.message}`
-						);
-					}
-				}
-
-				try {
-					returnVal = baseFunction.apply(functionContext, args);
-					call.return = clone(returnVal);
-				} catch (error) {
-					logger.error(
-						`an error occurred while calling the spied function: ${error.message}`
-					);
-					call.return = `Error: ${error.message}`;
-				}
-
-				if (typeof that.after === 'function') {
-					try {
-						that.after.apply(functionContext);
-					} catch (error) {
-						logger.error(
-							`an error occurred while calling after: ${error.message}`
-						);
-					}
-				}
-			}
-
-			// add spied function call to call log
-			decoratedFunction.calls.push(call);
-			return returnVal;
-		};
+		const decoratedFunction: DecoratedFunction = spyFunctionDecorator.call(
+			this,
+			context,
+			functionName
+		);
 
 		// spy on custom function props that exist on original function
 		Object.keys(originalFunction).forEach((prop: string): void => {
-			if (typeof originalFunction[prop] === 'function') {
+			if (typeof originalFunction[prop] === 'function' && prop !== 'calls') {
 				this.addSpy(new Spy(originalFunction, prop));
 			}
 
 			// point to original function prop on decorated function
 			decoratedFunction[prop] = originalFunction[prop];
 		});
-
-		// apply additional tracking props onto decorated function
-		decoratedFunction.calls = [];
 
 		// replace original function with decorated function
 		functionContext[functionName] = decoratedFunction;
@@ -148,5 +86,3 @@ class Spy {
 		spyList.forEach((spy: Spy): void => spy.reset());
 	}
 }
-
-module.exports = Spy;
