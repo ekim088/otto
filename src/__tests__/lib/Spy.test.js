@@ -1,4 +1,5 @@
 import Spy from '../../lib/Spy';
+import logger from '../../lib/utils/logger';
 
 describe('lib/Spy', () => {
 	let mockContext;
@@ -14,9 +15,25 @@ describe('lib/Spy', () => {
 			toBeCalledByBeforeAfter: jest.fn()
 		};
 		originalFunction = mockContext.toBeSpiedUpon;
+
+		// silence logging
+		logger.transports.forEach(t => {
+			const transport = t;
+			transport.silent = true;
+		});
 	});
 
-	afterEach(() => spy && spy.reset());
+	afterEach(() => {
+		if (spy instanceof Spy) {
+			spy.reset();
+		}
+
+		// re-enable logging
+		logger.transports.forEach(t => {
+			const transport = t;
+			transport.silent = false;
+		});
+	});
 
 	it('should decorate the function to spy on', () => {
 		spy = new Spy(mockContext, 'toBeSpiedUpon');

@@ -35,12 +35,10 @@
 	"lint-staged": {
 		"*.{js,jsx}": [
 			"npm run lint",
-			"npm run test",
-			"git add"
+			"npm run test"
 		],
 		"*.{json,md}": [
-			"prettier --write",
-			"git add"
+			"prettier --write"
 		]
 	},
 	"devDependencies": {
@@ -73,6 +71,7 @@
 		"rollup-plugin-visualizer": "^3.3.1"
 	},
 	"dependencies": {
-		"@babel/runtime": "^7.8.4"
+		"@babel/runtime": "^7.8.4",
+		"winston": "^3.2.1"
 	}
 }

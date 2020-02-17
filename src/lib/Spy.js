@@ -1,4 +1,6 @@
 // @flow
+import logger from './utils/logger';
+
 type CallEntry = {
 	args: Array<Array<any>>,
 	return: any
@@ -68,7 +70,7 @@ export default class Spy {
 			};
 			let returnVal: mixed;
 
-			console.log(`spied on ${functionName}`);
+			logger.info(`spied on ${functionName}`);
 
 			// call functions
 			if (that.callThrough) {
@@ -76,7 +78,7 @@ export default class Spy {
 					try {
 						that.before.apply(functionContext);
 					} catch (error) {
-						console.error(
+						logger.error(
 							`an error occurred while calling before: ${error.message}`
 						);
 					}
@@ -86,7 +88,7 @@ export default class Spy {
 					returnVal = originalFunction.apply(functionContext, args);
 					call.return = returnVal;
 				} catch (error) {
-					console.error(
+					logger.error(
 						`an error occurred while calling the spied function: ${error.message}`
 					);
 					call.return = `Error: ${error.message}`;
@@ -96,7 +98,7 @@ export default class Spy {
 					try {
 						that.after.apply(functionContext);
 					} catch (error) {
-						console.error(
+						logger.error(
 							`an error occurred while calling after: ${error.message}`
 						);
 					}
