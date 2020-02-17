@@ -15,7 +15,7 @@ type DecoratedFunction = {
 // Maintains a list of all instantiated spies.
 const spyList = [];
 
-export default class Spy {
+class Spy {
 	// flow annotations
 	addSpy: Spy => number;
 
@@ -24,6 +24,8 @@ export default class Spy {
 	before: ?() => mixed;
 
 	callThrough: boolean;
+
+	fake: ?() => mixed;
 
 	reset: () => void;
 
@@ -73,6 +75,10 @@ export default class Spy {
 		const decoratedFunction: DecoratedFunction = function decoratedFunction(
 			...args: Array<any>
 		): mixed {
+			// call `fake` function instead of original if defined
+			const baseFunction =
+				typeof that.fake === 'function' ? that.fake : originalFunction;
+
 			// generate initial call object for logging
 			const call: CallEntry = {
 				args: clone(Array.from(args)),
@@ -95,7 +101,7 @@ export default class Spy {
 				}
 
 				try {
-					returnVal = originalFunction.apply(functionContext, args);
+					returnVal = baseFunction.apply(functionContext, args);
 					call.return = clone(returnVal);
 				} catch (error) {
 					logger.error(
@@ -142,3 +148,5 @@ export default class Spy {
 		spyList.forEach((spy: Spy): void => spy.reset());
 	}
 }
+
+module.exports = Spy;

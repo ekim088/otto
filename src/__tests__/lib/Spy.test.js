@@ -209,4 +209,22 @@ describe('lib/Spy', () => {
 		expect(mockContext.anotherFunctionToSpyOn).toBe(originalAnotherFunction);
 		anotherSpy.reset();
 	});
+
+	it('should call a fake function instead of the original spied function if defined', () => {
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
+		spy.fake = jest.fn();
+		mockContext.toBeSpiedUpon();
+		expect(originalFunction).not.toHaveBeenCalled();
+		expect(spy.fake).toHaveBeenCalled();
+	});
+
+	it('should call before and after functions if fake is defined', () => {
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
+		spy.before = jest.fn();
+		spy.after = jest.fn();
+		spy.fake = jest.fn();
+		mockContext.toBeSpiedUpon();
+		expect(spy.before).toHaveBeenCalledBefore(spy.fake);
+		expect(spy.after).toHaveBeenCalledAfter(spy.fake);
+	});
 });
