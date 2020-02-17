@@ -177,4 +177,21 @@ describe('lib/Spy', () => {
 		expect(mockContext.someFunction.testMethod1).toBe(originalPropMethod1);
 		expect(mockContext.someFunction.testMethod2).toBe(originalPropMethod2);
 	});
+
+	it('should reset all known spies on resetAllSpies', () => {
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
+		expect(mockContext.toBeSpiedUpon).not.toBe(originalFunction);
+
+		mockContext.anotherFunctionToSpyOn = () => {};
+		const originalAnotherFunction = mockContext.anotherFunctionToSpyOn;
+		const anotherSpy = new Spy(mockContext, 'anotherFunctionToSpyOn');
+		expect(mockContext.anotherFunctionToSpyOn).not.toBe(
+			originalAnotherFunction
+		);
+
+		Spy.resetAllSpies();
+		expect(mockContext.toBeSpiedUpon).toBe(originalFunction);
+		expect(mockContext.anotherFunctionToSpyOn).toBe(originalAnotherFunction);
+		anotherSpy.reset();
+	});
 });

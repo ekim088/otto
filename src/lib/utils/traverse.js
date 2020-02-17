@@ -1,7 +1,7 @@
 // @flow
 /**
  * Safely navigates to a nested object property.
- * @param {*} [origin] An object that acts as the starting point for
+ * @param {*} origin An object that acts as the starting point for
 	navigation.
  * @param {string} path The path to the nested object property not including
  	the originating object.

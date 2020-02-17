@@ -11,6 +11,9 @@ type DecoratedFunction = {
 	calls: Array<CallEntry>
 };
 
+// Maintains a list of all instantiated spies.
+const spyList = [];
+
 export default class Spy {
 	// flow annotations
 	addSpy: Spy => number;
@@ -30,7 +33,9 @@ export default class Spy {
 	 * @param {string} propKey The name of the property to spy on
 	 */
 	constructor(context: any, propKey: string) {
-		this.callThrough = true;
+		if (!context || typeof context[propKey] === 'undefined') {
+			throw new TypeError('must spy on defined object property');
+		}
 
 		/**
 		 * Additional Spies deployed by this Spy to spy on custom methods
@@ -49,6 +54,10 @@ export default class Spy {
 
 		// initiate spying
 		this.decorateFunction(context, propKey);
+		this.callThrough = true;
+
+		// add Spy to instantiated list
+		spyList.push(this);
 	}
 
 	/**
@@ -125,5 +134,10 @@ export default class Spy {
 
 		// replace original function with decorated function
 		functionContext[functionName] = decoratedFunction;
+	}
+
+	// Resets all known instantiated spies.
+	static resetAllSpies(): void {
+		spyList.forEach((spy: Spy): void => spy.reset());
 	}
 }
