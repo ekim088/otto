@@ -1,7 +1,7 @@
 import logger from '../../lib/utils/logger';
 import Spy from '../../lib/Spy';
 
-describe('lib/Spy', () => {
+describe('lib/Spy.function', () => {
 	let mockContext;
 	let originalFunction;
 	let spy;
