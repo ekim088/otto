@@ -105,12 +105,26 @@ describe('lib/Spy', () => {
 	it('should maintain a log of calls to the spied function', () => {
 		mockContext.sum = (num1, num2) => num1 + num2;
 		spy = new Spy(mockContext, 'sum');
-		expect(spy.calls.length).toEqual(0);
+		expect(mockContext.sum.calls.length).toEqual(0);
 
-		expect(mockContext.sum(1, 1)).toEqual(2);
-		expect(spy.calls.length).toEqual(1);
-		expect(spy.calls[0].arguments).toEqual([1, 1]);
-		expect(spy.calls[0].return).toEqual(2);
+		mockContext.sum(1, 1);
+		expect(mockContext.sum.calls.length).toEqual(1);
+		expect(mockContext.sum.calls[0].args).toEqual([1, 1]);
+		expect(mockContext.sum.calls[0].return).toEqual(2);
+
+		mockContext.sum(5, '6');
+		expect(mockContext.sum.calls.length).toEqual(2);
+		expect(mockContext.sum.calls[1].args).toStrictEqual([5, '6']);
+		expect(mockContext.sum.calls[1].return).toStrictEqual('56');
+	});
+
+	it('should remove the log of calls to the spied function on reset', () => {
+		mockContext.sum = (num1, num2) => num1 + num2;
+		spy = new Spy(mockContext, 'sum');
+		expect(typeof mockContext.sum.calls).toEqual('object');
+
+		spy.reset();
+		expect(typeof mockContext.sum.calls).toEqual('undefined');
 	});
 
 	it('should spy on custom prop methods that may have been applied to the spied function', () => {

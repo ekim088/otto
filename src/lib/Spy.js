@@ -1,4 +1,14 @@
 // @flow
+type CallEntry = {
+	args: Array<Array<any>>,
+	return: any
+};
+
+type DecoratedFunction = {
+	(): mixed,
+	calls: Array<CallEntry>
+};
+
 export default class Spy {
 	// flow annotations
 	addSpy: Spy => number;
@@ -6,11 +16,6 @@ export default class Spy {
 	after: ?() => mixed;
 
 	before: ?() => mixed;
-
-	calls: Array<{
-		arguments: Array<any>,
-		return: mixed
-	}>;
 
 	callThrough: boolean;
 
@@ -23,7 +28,6 @@ export default class Spy {
 	 * @param {string} propKey The name of the property to spy on
 	 */
 	constructor(context: any, propKey: string) {
-		this.calls = [];
 		this.callThrough = true;
 
 		/**
@@ -51,18 +55,26 @@ export default class Spy {
 	 * @param {string} functionName The name of the function to spy on.
 	 */
 	decorateFunction(context: any, functionName: string): void {
+		const that = this;
 		const functionContext: any = context;
 		const originalFunction: () => mixed = context[functionName];
-		const decoratedFunction: () => mixed = (...args: Array<any>): mixed => {
+		const decoratedFunction: DecoratedFunction = function decoratedFunction(
+			...args: Array<any>
+		): mixed {
+			// generate initial call object for logging
+			const call: CallEntry = {
+				args: Array.from(args),
+				return: undefined
+			};
 			let returnVal: mixed;
 
 			console.log(`spied on ${functionName}`);
 
 			// call functions
-			if (this.callThrough) {
-				if (typeof this.before === 'function') {
+			if (that.callThrough) {
+				if (typeof that.before === 'function') {
 					try {
-						this.before.apply(functionContext);
+						that.before.apply(functionContext);
 					} catch (error) {
 						console.error(
 							`an error occurred while calling before: ${error.message}`
@@ -72,21 +84,17 @@ export default class Spy {
 
 				try {
 					returnVal = originalFunction.apply(functionContext, args);
-
-					// add spied function call to call log
-					this.calls.push({
-						arguments: Array.from(args),
-						return: returnVal
-					});
+					call.return = returnVal;
 				} catch (error) {
 					console.error(
 						`an error occurred while calling the spied function: ${error.message}`
 					);
+					call.return = `Error: ${error.message}`;
 				}
 
-				if (typeof this.after === 'function') {
+				if (typeof that.after === 'function') {
 					try {
-						this.after.apply(functionContext);
+						that.after.apply(functionContext);
 					} catch (error) {
 						console.error(
 							`an error occurred while calling after: ${error.message}`
@@ -95,6 +103,8 @@ export default class Spy {
 				}
 			}
 
+			// add spied function call to call log
+			decoratedFunction.calls.push(call);
 			return returnVal;
 		};
 
@@ -107,6 +117,9 @@ export default class Spy {
 			// point to original function prop on decorated function
 			decoratedFunction[prop] = originalFunction[prop];
 		});
+
+		// apply additional tracking props onto decorated function
+		decoratedFunction.calls = [];
 
 		// replace original function with decorated function
 		functionContext[functionName] = decoratedFunction;

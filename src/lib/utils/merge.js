@@ -6,7 +6,7 @@
  * @param {Array<*>} args Any number of additional objects to merge.
  * @returns {*} The merged object.
  */
-export default function merge(obj1: any, ...args: Array<any>): any {
+export default function merge(obj1: {}, ...args: Array<any>): any {
 	let mergedObj = obj1;
 
 	args.forEach(objToMerge => {

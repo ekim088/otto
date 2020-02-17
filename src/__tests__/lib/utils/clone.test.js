@@ -22,10 +22,13 @@ describe('utils/clone', () => {
 		expect(Array.isArray(clonedArr)).toEqual(true);
 	});
 
-	it('should return the original input if it is a primitive value', () => {
+	it('should return the original input if it is an unsupported type', () => {
 		expect(clone(undefined)).toBe(undefined);
 		expect(clone(null)).toBe(null);
 		expect(clone(0)).toBe(0);
 		expect(clone('')).toBe('');
+
+		const someFunction = () => null;
+		expect(clone(someFunction)).toBe(someFunction);
 	});
 });
