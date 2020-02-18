@@ -1,6 +1,7 @@
 // @flow
 import type { DecoratedFunction } from './utils/spyFunctionDecorator';
 import spyFunctionDecorator from './utils/spyFunctionDecorator';
+import spyGetSetDecorator from './utils/spyGetSetDecorator';
 
 // Maintains a list of all instantiated spies.
 const spyList = [];
@@ -30,6 +31,7 @@ export default class Spy {
 
 		// initiate spying
 		this.callThrough = true;
+		this.reset = () => undefined;
 		this.initiate(obj, propName);
 
 		// add Spy to instantiated list
@@ -42,13 +44,12 @@ export default class Spy {
 	 * @param {string} propName The name of the property to spy on.
 	 */
 	initiate(obj: any, propName: string): void {
-		// decorate property with function decorator
-		if (typeof obj[propName] === 'function') {
-			this.decorateFunction(obj, propName);
-			// decorate property with getter/setter decorator
-		} else {
-			// ...
-		}
+		// decorate property with either function or getter/setter decorator
+		const decorator: (any, string) => mixed =
+			typeof obj[propName] === 'function'
+				? this.decorateFunction
+				: this.decorateGetSet;
+		decorator.call(this, obj, propName);
 	}
 
 	/**
@@ -97,6 +98,27 @@ export default class Spy {
 
 		// replace original function with decorated function
 		baseObject[functionName] = decoratedFunction;
+	}
+
+	/**
+	 * Decorates a property's getter/setter to be spied upon.
+	 * @param {Object} obj The object containing the property to spy on.
+	 * @param {string} propName The name of the property to spy on.
+	 */
+	decorateGetSet(obj: any, propName: string): void {
+		const baseObject: any = obj;
+		const originalSetter: ?(any) => any = spyGetSetDecorator(obj, propName);
+
+		// initialize reset method for property spies
+		this.reset = (): void => {
+			// reset getter/setter
+			Object.defineProperty(baseObject, propName, {
+				set: originalSetter || undefined
+			});
+
+			// delete logging object
+			delete baseObject._spy_;
+		};
 	}
 
 	// Resets all known instantiated spies.
