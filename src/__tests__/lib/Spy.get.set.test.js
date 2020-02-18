@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import logger from '../../lib/utils/logger';
 import Spy from '../../lib/Spy';
 
@@ -13,8 +14,9 @@ describe('lib/Spy.get.set', () => {
 				this.log.push(val);
 			},
 			get propWithExistingGetter() {
-				return 'got';
-			}
+				return this.someProp;
+			},
+			someProp: 'some value'
 		};
 
 		// silence logging
@@ -45,6 +47,15 @@ describe('lib/Spy.get.set', () => {
 		expect(propSetter).not.toBe(undefined);
 	});
 
+	it('should decorate the getter of the property to spy on', () => {
+		spy = new Spy(mockContext, 'propToSpyOn');
+		const propGetter = Object.getOwnPropertyDescriptor(
+			mockContext,
+			'propToSpyOn'
+		).get;
+		expect(propGetter).not.toBe(undefined);
+	});
+
 	it('should call the original setter within the decorated setter if available', () => {
 		const originalSetter = Object.getOwnPropertyDescriptor(
 			mockContext,
@@ -61,6 +72,20 @@ describe('lib/Spy.get.set', () => {
 		expect(mockContext.log[0]).toEqual('updated');
 	});
 
+	it('should call the original getter within the decorated getter if available', () => {
+		const originalGetter = Object.getOwnPropertyDescriptor(
+			mockContext,
+			'propWithExistingGetter'
+		).get;
+		spy = new Spy(mockContext, 'propWithExistingGetter');
+		const newGetter = Object.getOwnPropertyDescriptor(
+			mockContext,
+			'propWithExistingGetter'
+		).get;
+		expect(newGetter).not.toBe(originalGetter);
+		expect(mockContext.propWithExistingGetter).toEqual('some value');
+	});
+
 	it('should remove the decorated setter on reset', () => {
 		spy = new Spy(mockContext, 'propToSpyOn');
 		spy.reset();
@@ -69,6 +94,16 @@ describe('lib/Spy.get.set', () => {
 			'propToSpyOn'
 		).set;
 		expect(propSetter).toBe(undefined);
+	});
+
+	it('should remove the decorated getter on reset', () => {
+		spy = new Spy(mockContext, 'propToSpyOn');
+		spy.reset();
+		const propGetter = Object.getOwnPropertyDescriptor(
+			mockContext,
+			'propToSpyOn'
+		).get;
+		expect(propGetter).toBe(undefined);
 	});
 
 	it('should return to the original setter on reset if available', () => {
@@ -85,27 +120,65 @@ describe('lib/Spy.get.set', () => {
 		expect(setterAfterReset).toBe(originalSetter);
 	});
 
-	it('should maintain log of updates to the spied property', () => {
-		spy = new Spy(mockContext, 'propToSpyOn');
-		expect('_spy_' in mockContext).toBe(true);
+	it('should return to the original getter on reset if available', () => {
+		const originalGetter = Object.getOwnPropertyDescriptor(
+			mockContext,
+			'propWithExistingGetter'
+		).get;
+		spy = new Spy(mockContext, 'propWithExistingGetter');
+		spy.reset();
+		const getterAfterReset = Object.getOwnPropertyDescriptor(
+			mockContext,
+			'propWithExistingGetter'
+		).get;
+		expect(getterAfterReset).toBe(originalGetter);
+	});
 
+	it('should maintain a log of writes to the spied property', () => {
+		spy = new Spy(mockContext, 'propToSpyOn');
 		mockContext.propToSpyOn = 'new1';
 		mockContext.propToSpyOn = 'new2';
 		mockContext.propToSpyOn = 'new3';
-		expect(mockContext._spy_.propToSpyOn).toEqual(['new1', 'new2', 'new3']);
+		expect(mockContext._spy_.propToSpyOn.writes).toEqual([
+			'new1',
+			'new2',
+			'new3'
+		]);
 
 		mockContext._spy_ = 'whoops';
 		mockContext.propToSpyOn = 'new4';
-		expect(mockContext._spy_.propToSpyOn).toEqual([
+		expect(mockContext._spy_.propToSpyOn.writes).toEqual([
 			'new1',
 			'new2',
 			'new3',
 			'new4'
 		]);
+
+		spy = new Spy(mockContext, 'propWithExistingSetter');
+		mockContext.propWithExistingSetter = 'test1';
+		expect(mockContext._spy_.propWithExistingSetter.writes).toEqual(['test1']);
+	});
+
+	it('should maintain a log of reads to the spied property', () => {
+		spy = new Spy(mockContext, 'propToSpyOn');
+		mockContext.propToSpyOn;
+		expect(mockContext._spy_.propToSpyOn.reads).toEqual(1);
+
+		mockContext.propToSpyOn;
+		expect(mockContext._spy_.propToSpyOn.reads).toEqual(2);
+
+		mockContext._spy_ = 'whoops';
+		mockContext.propToSpyOn;
+		expect(mockContext._spy_.propToSpyOn.reads).toEqual(3);
+
+		spy = new Spy(mockContext, 'propWithExistingGetter');
+		mockContext.propWithExistingGetter;
+		expect(mockContext._spy_.propWithExistingGetter.reads).toEqual(1);
 	});
 
 	it('should remove the log of updates to the spied property on reset', () => {
 		spy = new Spy(mockContext, 'propToSpyOn');
+		mockContext.propToSpyOn = 'new1';
 		spy.reset();
 		expect('_spy_' in mockContext).toBe(false);
 	});

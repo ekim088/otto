@@ -107,12 +107,16 @@ export default class Spy {
 	 */
 	decorateGetSet(obj: any, propName: string): void {
 		const baseObject: any = obj;
-		const originalSetter: ?(any) => any = spyGetSetDecorator(obj, propName);
+		const { originalGetter, originalSetter } = spyGetSetDecorator(
+			obj,
+			propName
+		);
 
 		// initialize reset method for property spies
 		this.reset = (): void => {
 			// reset getter/setter
 			Object.defineProperty(baseObject, propName, {
+				get: originalGetter || undefined,
 				set: originalSetter || undefined
 			});
 
