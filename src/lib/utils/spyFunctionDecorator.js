@@ -15,16 +15,17 @@ export type DecoratedFunction = {
 
 /**
  * Decorates a function to be spied upon.
- * @param {Object} context The context of the function to spy on.
+ * @param {Object} obj The object containing the function to spy on.
  * @param {string} functionName The name of the function to spy on.
+ * @returns {Function} The decorated function.
  */
 export default function spyFunctionDecorator(
-	context: any,
+	obj: any,
 	functionName: string
-) {
+): DecoratedFunction {
 	const that: Spy = this;
 	const calls: Array<CallEntry> = [];
-	const originalFunction: () => mixed = context[functionName];
+	const originalFunction: () => mixed = obj[functionName];
 	const decoratedFunction: DecoratedFunction = function decoratedFunction(
 		...args: Array<any>
 	): mixed {
@@ -45,7 +46,7 @@ export default function spyFunctionDecorator(
 		if (that.callThrough) {
 			if (typeof that.before === 'function') {
 				try {
-					that.before.apply(context);
+					that.before.apply(obj);
 				} catch (error) {
 					logger.error(
 						`an error occurred while calling before: ${error.message}`
@@ -54,7 +55,7 @@ export default function spyFunctionDecorator(
 			}
 
 			try {
-				returnVal = baseFunction.apply(context, args);
+				returnVal = baseFunction.apply(obj, args);
 				call.return = clone(returnVal);
 			} catch (error) {
 				logger.error(
@@ -65,7 +66,7 @@ export default function spyFunctionDecorator(
 
 			if (typeof that.after === 'function') {
 				try {
-					that.after.apply(context);
+					that.after.apply(obj);
 				} catch (error) {
 					logger.error(
 						`an error occurred while calling after: ${error.message}`
