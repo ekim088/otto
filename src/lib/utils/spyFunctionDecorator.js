@@ -1,12 +1,9 @@
 // @flow
 import clone from './clone';
 import logger from './logger';
+import spyDecoratorLogger from './spyDecoratorLogger';
 import type Spy from '../Spy';
-
-type CallEntry = {
-	args: Array<Array<any>>,
-	return: any
-};
+import type { CallEntry, FunctionLogConfig } from './spyDecoratorLogger';
 
 export type DecoratedFunction = {
 	(): mixed,
@@ -25,6 +22,13 @@ export default function spyFunctionDecorator(
 ): DecoratedFunction {
 	const that: Spy = this;
 	const calls: Array<CallEntry> = [];
+	const logConfig: FunctionLogConfig = {
+		obj,
+		propName: functionName,
+		args: [],
+		calls,
+		return: undefined
+	};
 	const originalFunction: () => mixed = obj[functionName];
 	const decoratedFunction: DecoratedFunction = function decoratedFunction(
 		...args: Array<any>
@@ -32,14 +36,7 @@ export default function spyFunctionDecorator(
 		// call `fake` function instead of original if defined
 		const baseFunction =
 			typeof that.fake === 'function' ? that.fake : originalFunction;
-
-		// generate initial call object for logging
-		const call: CallEntry = {
-			args: clone(Array.from(args)),
-			return: undefined
-		};
 		let returnVal: mixed;
-
 		logger.info(`spied on ${functionName}`);
 
 		// call functions
@@ -55,13 +52,14 @@ export default function spyFunctionDecorator(
 			}
 
 			try {
+				logConfig.args = clone(Array.from(args));
 				returnVal = baseFunction.apply(obj, args);
-				call.return = clone(returnVal);
+				logConfig.return = clone(returnVal);
 			} catch (error) {
 				logger.error(
 					`an error occurred while calling the spied function: ${error.message}`
 				);
-				call.return = `Error: ${error.message}`;
+				logConfig.return = `Error: ${error.message}`;
 			}
 
 			if (typeof that.after === 'function') {
@@ -75,17 +73,10 @@ export default function spyFunctionDecorator(
 			}
 		}
 
-		/**
-		 * Add spied function call to call log and reapply call prop to prevent
-		 * overwriting.
-		 */
-		calls.push(call);
-		decoratedFunction.calls = calls;
+		// log function call
+		spyDecoratorLogger(logConfig);
 		return returnVal;
 	};
-
-	// initialize additional tracking props onto decorated function
-	decoratedFunction.calls = calls;
 
 	return decoratedFunction;
 }

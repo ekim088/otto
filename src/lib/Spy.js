@@ -1,7 +1,8 @@
 // @flow
-import type { DecoratedFunction } from './utils/spyFunctionDecorator';
+import { deleteSpyLog } from './utils/spyDecoratorLogger';
 import spyFunctionDecorator from './utils/spyFunctionDecorator';
 import spyGetSetDecorator from './utils/spyGetSetDecorator';
+import type { DecoratedFunction } from './utils/spyFunctionDecorator';
 
 // Maintains a list of all instantiated spies.
 const spyList = [];
@@ -94,6 +95,7 @@ export default class Spy {
 		this.reset = (): void => {
 			additionalSpies.forEach((spy: Spy): void => spy.reset());
 			baseObject[functionName] = originalFunction;
+			deleteSpyLog(obj, functionName);
 		};
 
 		// replace original function with decorated function
@@ -119,9 +121,7 @@ export default class Spy {
 				get: originalGetter || undefined,
 				set: originalSetter || undefined
 			});
-
-			// delete logging object
-			delete baseObject._spy_;
+			deleteSpyLog(obj, propName);
 		};
 	}
 

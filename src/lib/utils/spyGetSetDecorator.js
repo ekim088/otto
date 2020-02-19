@@ -1,61 +1,10 @@
 // @flow
-import clone from './clone';
 import logger from './logger';
-
-type ReadLogConfig = {
-	obj: any,
-	propName: string,
-	reads: number
-};
-
-type WriteLogConfig = {
-	obj: any,
-	originalValue: any,
-	propName: string,
-	newValue: any,
-	writes: Array<any>
-};
-
-/**
- * Update record of number of gets and reapply spy log prop to prevent
- * overwriting.
- * @param {Object} config Log message configuration.
- */
-const updateReadLog: ReadLogConfig => void = function({
-	obj,
-	propName,
-	reads
-}) {
-	const baseObj: any = obj;
-	logger.info(`read value of ${propName}`);
-	baseObj._spy_ = typeof baseObj._spy_ === 'object' ? baseObj._spy_ : {};
-	baseObj._spy_[propName] =
-		typeof baseObj._spy_[propName] === 'object' ? baseObj._spy_[propName] : {};
-	baseObj._spy_[propName].reads = reads;
-};
-
-/**
- * Update record of number of sets and reapply spy log prop to prevent
- * overwriting.
- * @param {Object} config Log message configuration.
- */
-const updateWriteLog: WriteLogConfig => void = function({
-	obj,
-	originalValue,
-	propName,
-	newValue,
-	writes
-}) {
-	const baseObj: any = obj;
-	logger.info(
-		`value of ${propName} updated from ${originalValue} to ${newValue}`
-	);
-	writes.push(clone(newValue));
-	baseObj._spy_ = typeof baseObj._spy_ === 'object' ? baseObj._spy_ : {};
-	baseObj._spy_[propName] =
-		typeof baseObj._spy_[propName] === 'object' ? baseObj._spy_[propName] : {};
-	baseObj._spy_[propName].writes = writes;
-};
+import spyDecoratorLogger from './spyDecoratorLogger';
+import type {
+	PropReadLogConfig,
+	PropWriteLogConfig
+} from './spyDecoratorLogger';
 
 /**
  * Decorates a property's getter and setter to be spied upon.
@@ -89,13 +38,21 @@ export default function spyGetSetDecorator(
 		Object.defineProperty(obj, propName, {
 			get() {
 				reads += 1;
-				updateReadLog({ obj, propName, reads });
+				spyDecoratorLogger(({ obj, propName, reads }: PropReadLogConfig));
 				return propValue;
 			},
 			set(newValue) {
 				const originalValue: any = propValue;
 				propValue = newValue;
-				updateWriteLog({ obj, originalValue, propName, newValue, writes });
+				spyDecoratorLogger(
+					({
+						obj,
+						originalValue,
+						propName,
+						newValue,
+						writes
+					}: PropWriteLogConfig)
+				);
 			},
 			configurable: true,
 			enumerable: descriptor.enumerable
@@ -106,7 +63,7 @@ export default function spyGetSetDecorator(
 			originalGetter = descriptor.get;
 			descriptor.get = function() {
 				reads += 1;
-				updateReadLog({ obj, propName, reads });
+				spyDecoratorLogger(({ obj, propName, reads }: PropReadLogConfig));
 				return originalGetter.call(obj);
 			};
 		}
@@ -117,7 +74,15 @@ export default function spyGetSetDecorator(
 			descriptor.set = function(newValue) {
 				const originalValue: any = obj[propName];
 				originalSetter.call(obj, newValue);
-				updateWriteLog({ obj, originalValue, propName, newValue, writes });
+				spyDecoratorLogger(
+					({
+						obj,
+						originalValue,
+						propName,
+						newValue,
+						writes
+					}: PropWriteLogConfig)
+				);
 			};
 		}
 

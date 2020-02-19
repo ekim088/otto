@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import logger from '../../lib/utils/logger';
 import Spy from '../../lib/Spy';
 
@@ -122,18 +123,29 @@ describe('lib/Spy.function', () => {
 	it('should maintain a log of calls to the spied function', () => {
 		mockContext.sum = (num1, num2) => num1 + num2;
 		spy = new Spy(mockContext, 'sum');
-		expect(mockContext.sum.calls.length).toEqual(0);
+		expect(mockContext.sum.calls).not.toBeDefined();
+		expect(mockContext._spy_).not.toBeDefined();
 
 		mockContext.sum(1, 1);
 		expect(mockContext.sum.calls.length).toEqual(1);
+		expect(mockContext._spy_.sum.length).toEqual(1);
 		expect(mockContext.sum.calls[0]).toStrictEqual({
+			args: [1, 1],
+			return: 2
+		});
+		expect(mockContext._spy_.sum[0]).toStrictEqual({
 			args: [1, 1],
 			return: 2
 		});
 
 		mockContext.sum(5, '6');
 		expect(mockContext.sum.calls.length).toEqual(2);
+		expect(mockContext._spy_.sum.length).toEqual(2);
 		expect(mockContext.sum.calls[1]).toStrictEqual({
+			args: [5, '6'],
+			return: '56'
+		});
+		expect(mockContext._spy_.sum[1]).toStrictEqual({
 			args: [5, '6'],
 			return: '56'
 		});
@@ -142,10 +154,13 @@ describe('lib/Spy.function', () => {
 	it('should remove the log of calls to the spied function on reset', () => {
 		mockContext.sum = (num1, num2) => num1 + num2;
 		spy = new Spy(mockContext, 'sum');
-		expect(typeof mockContext.sum.calls).toEqual('object');
+		mockContext.sum();
+		expect(mockContext.sum.calls).toBeDefined();
+		expect(mockContext._spy_.sum).toBeDefined();
 
 		spy.reset();
-		expect(typeof mockContext.sum.calls).toEqual('undefined');
+		expect(mockContext.sum.calls).not.toBeDefined();
+		expect(mockContext._spy_).not.toBeDefined();
 	});
 
 	it('should make copies of original arguments and returns in the call log', () => {
@@ -179,14 +194,36 @@ describe('lib/Spy.function', () => {
 	});
 
 	it('should not overwrite function props that are required for spying', () => {
-		mockContext.someFunction = () => null;
-		mockContext.someFunction.calls = 'invalid value';
+		let x = 0;
+		mockContext.someFunction = () => {
+			x += 1;
+			return x;
+		};
 		spy = new Spy(mockContext, 'someFunction');
-		expect(mockContext.someFunction.calls).not.toBe('invalid value');
+		mockContext.someFunction.calls = 'invalid value';
+		mockContext._spy_ = 'invalid value';
+		mockContext.someFunction();
+		expect(mockContext.someFunction.calls[0]).toStrictEqual({
+			args: [],
+			return: 1
+		});
+		expect(mockContext._spy_.someFunction[0]).toStrictEqual({
+			args: [],
+			return: 1
+		});
 
 		mockContext.someFunction.calls = 'overwriting';
+		mockContext._spy_ = 'overwriting';
 		mockContext.someFunction();
-		expect(mockContext.someFunction.calls).not.toBe('overwriting');
+		mockContext.someFunction();
+		expect(mockContext.someFunction.calls[2]).toStrictEqual({
+			args: [],
+			return: 3
+		});
+		expect(mockContext._spy_.someFunction[2]).toStrictEqual({
+			args: [],
+			return: 3
+		});
 	});
 
 	it('should reset spies on custom prop methods when resetting the originally spied method', () => {
