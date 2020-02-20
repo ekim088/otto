@@ -23,7 +23,7 @@ export type PropertyDescriptor = {
  * @param {string} propName The name of the property to spy on.
  * @returns {Object} An object containing the original getter/setter if present.
  */
-export default function spyGetSetDecorator(
+export default function decorateProperty(
 	obj: any,
 	propName: string
 ): {
