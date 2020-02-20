@@ -1,5 +1,4 @@
 // @flow
-import clone from './clone';
 import logger from './logger';
 
 export type CallEntry = {
@@ -61,7 +60,7 @@ export default function spyDecoratorLogger(
 			typeof config.originalValue !== 'undefined' && config.originalValue;
 		const newValue = typeof config.newValue !== 'undefined' && config.newValue;
 		// $FlowFixMe
-		writes.push(clone(newValue));
+		writes.push(newValue);
 		obj._spy_[propName].writes = writes;
 		logger.info(
 			`value of ${propName} updated from ${String(originalValue)} to ${String(
@@ -69,19 +68,24 @@ export default function spyDecoratorLogger(
 			)}`
 		);
 	} else if (calls) {
-		// NOTE: arguments and return already cloned in spyFunctionDecorator()
 		// $FlowFixMe
 		const args: Array<any> =
 			(typeof config.args !== 'undefined' && config.args) || [];
-		const returnVal = typeof config.return !== 'undefined' && config.return;
+		// $FlowFixMe
+		const returnVal = config.return;
 		const entry: CallEntry = {
 			args,
 			return: returnVal
 		};
 		// $FlowFixMe
 		calls.push(entry);
-		obj[propName].calls = calls;
-		obj._spy_[propName] = calls;
+
+		if (obj && propName) {
+			obj[propName].calls = calls;
+			obj._spy_[propName] = calls;
+		} else {
+			obj.calls = calls;
+		}
 	}
 }
 
