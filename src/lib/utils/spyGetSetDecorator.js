@@ -6,6 +6,15 @@ import type {
 	PropWriteLogConfig
 } from './spyDecoratorLogger';
 
+export type PropertyDescriptor = {
+	value?: any,
+	writable?: boolean,
+	get?: () => mixed | void,
+	set?: () => void | void,
+	configurable?: boolean,
+	enumerable?: boolean
+};
+
 /**
  * Decorates a property's getter and setter to be spied upon.
  * NOTE: Immediately updates getter/setter methods to be spied. Returns a
@@ -21,7 +30,8 @@ export default function spyGetSetDecorator(
 	originalGetter: ?() => mixed,
 	originalSetter: ?(any) => any
 } {
-	const descriptor: any = Object.getOwnPropertyDescriptor(obj, propName);
+	const descriptor: PropertyDescriptor =
+		Object.getOwnPropertyDescriptor(obj, propName) || {};
 	let originalGetter: () => mixed;
 	let originalSetter: any => mixed;
 
@@ -57,7 +67,7 @@ export default function spyGetSetDecorator(
 			configurable: true,
 			enumerable: descriptor.enumerable
 		});
-	} else {
+	} else if (descriptor.configurable) {
 		if (descriptor.get) {
 			// decorate getter if already defined
 			originalGetter = descriptor.get;

@@ -114,6 +114,8 @@ describe('lib/Spy.function', () => {
 		spy.before = jest.fn();
 		spy.after = jest.fn();
 		spy.reset();
+		expect(mockContext.toBeSpiedUpon).toBe(originalFunction);
+
 		mockContext.toBeSpiedUpon();
 		expect(originalFunction).toHaveBeenCalled();
 		expect(spy.before).not.toHaveBeenCalled();
