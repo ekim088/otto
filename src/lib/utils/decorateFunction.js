@@ -9,16 +9,19 @@ export type DecoratedFunction = {
 	calls: ?Array<CallEntry>
 };
 
-export type FunctionDecoratorConfig = {
-	after: ?() => void,
-	before: ?() => void,
-	callThrough: ?boolean,
-	fake: ?() => mixed
-};
+export type FunctionDecoratorConfig = {|
+	after?: () => void,
+	before?: () => void,
+	callThrough?: boolean,
+	fake?: () => mixed
+|};
 
 type FunctionWithDecorationConfiguration = {
 	(): mixed,
-	...FunctionDecoratorConfig
+	after?: () => void,
+	before?: () => void,
+	callThrough?: boolean,
+	fake?: () => mixed
 };
 
 /**
@@ -37,7 +40,7 @@ export default function decorateFunction(
 	...decorationArgs: Array<any>
 ): DecoratedFunction {
 	let functionName: string = '';
-	const obj: any = objOrFxn;
+	const obj: any | FunctionWithDecorationConfiguration = objOrFxn;
 	let originalFunction: FunctionWithDecorationConfiguration = objOrFxn;
 
 	// support decoration configuration on calling object itself
@@ -61,15 +64,6 @@ export default function decorateFunction(
 	// log of calls to decorated function
 	const calls: Array<CallEntry> = [];
 
-	// configuration for generating log entry to `calls` array
-	const logConfig: FunctionLogConfig = {
-		args: [],
-		calls,
-		obj,
-		propName: functionName,
-		return: undefined
-	};
-
 	// generate decorated function
 	const decoratedFunction: DecoratedFunction = function decoratedFunction(
 		...args: Array<any>
@@ -85,8 +79,19 @@ export default function decorateFunction(
 		} = config;
 
 		// call `fake` function instead of original if defined
-		const baseFunction = typeof fake === 'function' ? fake : originalFunction;
+		const baseFunction: () => mixed =
+			typeof fake === 'function' ? fake : originalFunction;
+
+		// configuration for generating log entry to `calls` array
+		const logConfig: FunctionLogConfig = {
+			args: clone(Array.from(args)),
+			calls,
+			obj,
+			propName: functionName,
+			return: undefined
+		};
 		let returnVal: mixed;
+
 		logger.info(`spied on ${functionName}`);
 
 		// call functions
@@ -102,7 +107,6 @@ export default function decorateFunction(
 			}
 
 			try {
-				logConfig.args = clone(Array.from(args));
 				returnVal = baseFunction.apply(obj, args);
 				logConfig.return = clone(returnVal);
 			} catch (error) {
@@ -123,7 +127,7 @@ export default function decorateFunction(
 			}
 		}
 
-		// log function call and return results of calling original function
+		// log function call and return result from original function
 		spyDecoratorLogger(logConfig);
 		return returnVal;
 	};
