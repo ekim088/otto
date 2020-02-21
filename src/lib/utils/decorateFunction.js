@@ -1,7 +1,7 @@
 // @flow
 import clone from './clone';
 import logger from './logger';
-import spyDecoratorLogger from './spyDecoratorLogger';
+import spyDecoratorLogger, { deleteSpyLog } from './spyDecoratorLogger';
 import type { CallEntry, FunctionLogConfig } from './spyDecoratorLogger';
 
 export type DecoratedFunction = {
@@ -192,8 +192,17 @@ export function revertDecoratedFunction(
 		const { obj, functionName } = entry;
 		originalFunction = entry.originalFunction;
 
+		/**
+		 * Reapply custom function properties from decorated to original
+		 * function to retain updates to values.
+		 */
+		Object.keys(decoratedFunction).forEach((prop: string): void => {
+			originalFunction[prop] = decoratedFunction[prop];
+		});
+
 		if (obj && functionName) {
 			obj[functionName] = originalFunction;
+			deleteSpyLog(obj, functionName);
 			logger.info(`removed decoration on function ${functionName}`);
 		}
 	} else {

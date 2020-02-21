@@ -33,29 +33,23 @@ function decorateFunctionForSpy(obj: any, functionName: string): void {
 	 * attached to the original function being spied on.
 	 */
 	const additionalSpies: Array<Spy> = [];
-	const originalFunction: () => mixed = obj[functionName];
 	const decoratedFunction: DecoratedFunction = decorateFunction.call(
 		this,
 		obj,
 		functionName
 	);
 
-	/**
-	 * Decorate custom function properties located on original function and
-	 * point to original prop on decorated function.
-	 */
-	Object.keys(originalFunction)
+	// spy on custom function properties that had been applied to spied function
+	Object.keys(decoratedFunction)
 		.filter((prop: string): boolean => reservedProps.indexOf(prop) === -1)
-		.forEach((prop: string): void => {
-			additionalSpies.push(new Spy(originalFunction, prop));
-			decoratedFunction[prop] = originalFunction[prop];
-		});
+		.forEach((prop: string): number =>
+			additionalSpies.push(new Spy(decoratedFunction, prop))
+		);
 
 	// initialize reset method for function spies
 	this.reset = (): void => {
 		additionalSpies.forEach((spy: Spy): void => spy.reset());
 		revertDecoratedFunction(decoratedFunction);
-		deleteSpyLog(obj, functionName);
 	};
 }
 

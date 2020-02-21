@@ -180,19 +180,45 @@ describe('lib/Spy.function', () => {
 		expect(mockContext.sum.calls[0].args[1].a).toEqual(1);
 	});
 
+	it('should maintain custom props from the original function to the spied function', () => {
+		mockContext.someFunction = () => null;
+		mockContext.someFunction.testProp = 0;
+		mockContext.someFunction.testMethod = function() {
+			this.testProp += 1;
+		};
+		spy = new Spy(mockContext, 'someFunction');
+		expect(mockContext.someFunction).toHaveProperty('testProp');
+		expect(mockContext.someFunction).toHaveProperty('testMethod');
+	});
+
 	it('should spy on custom prop methods that may have been applied to the spied function', () => {
 		mockContext.someFunction = () => null;
 		mockContext.someFunction.testProp = 0;
 		mockContext.someFunction.testMethod = function() {
 			this.testProp += 1;
 		};
-		originalFunction = mockContext.someFunction;
 		const originalPropMethod = mockContext.someFunction.testMethod;
 		spy = new Spy(mockContext, 'someFunction');
 		expect(mockContext.someFunction.testMethod).not.toBe(originalPropMethod);
 
 		mockContext.someFunction.testMethod();
-		expect(originalFunction.testProp).toEqual(1);
+		expect(mockContext.someFunction.testMethod.calls[0]).toStrictEqual({
+			args: [],
+			return: undefined
+		});
+		expect(mockContext.someFunction.testProp).toEqual(1);
+	});
+
+	it('should spy on non-method custom props that have been applied to the spied function', () => {
+		mockContext.someFunction = () => null;
+		mockContext.someFunction.testProp = 0;
+		spy = new Spy(mockContext, 'someFunction');
+		mockContext.someFunction.testProp = 100;
+		mockContext.someFunction.testProp;
+		expect(mockContext.someFunction._spy_.testProp).toStrictEqual({
+			reads: 1,
+			writes: [100]
+		});
 	});
 
 	it('should not overwrite function props that are required for spying', () => {
@@ -241,6 +267,16 @@ describe('lib/Spy.function', () => {
 		spy.reset();
 		expect(mockContext.someFunction.testMethod1).toBe(originalPropMethod1);
 		expect(mockContext.someFunction.testMethod2).toBe(originalPropMethod2);
+	});
+
+	it('should reset spies on non-method custom props when resetting the originally spied method', () => {
+		mockContext.someFunction = () => null;
+		mockContext.someFunction.testProp = 0;
+		originalFunction = mockContext.someFunction;
+		spy = new Spy(mockContext, 'someFunction');
+		mockContext.someFunction.testProp = 200;
+		spy.reset();
+		expect(originalFunction.testProp).toEqual(200);
 	});
 
 	it('should reset all known spies on resetAllSpies', () => {

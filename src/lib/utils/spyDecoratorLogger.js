@@ -106,4 +106,12 @@ export function deleteSpyLog(obj: any, propName: string) {
 			delete baseObj._spy_;
 		}
 	}
+
+	// delete call log from functions
+	if (
+		typeof baseObj[propName] === 'function' &&
+		Array.isArray(baseObj[propName].calls)
+	) {
+		delete baseObj[propName].calls;
+	}
 }
