@@ -201,9 +201,15 @@ export function revertDecoratedFunction(
 		});
 
 		if (obj && functionName) {
-			obj[functionName] = originalFunction;
-			deleteSpyLog(obj, functionName);
-			logger.info(`removed decoration on function ${functionName}`);
+			if (obj[functionName] === decoratedFunction) {
+				obj[functionName] = originalFunction;
+				deleteSpyLog(obj, functionName);
+				logger.info(`removed decoration on function ${functionName}`);
+			} else {
+				logger.info(
+					`the value of decorated function ${functionName} has since been updated and will not be reverted`
+				);
+			}
 		}
 	} else {
 		logger.info('could not find a record of decorated function to revert');

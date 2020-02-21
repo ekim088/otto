@@ -122,6 +122,22 @@ describe('lib/Spy.function', () => {
 		expect(spy.after).not.toHaveBeenCalled();
 	});
 
+	it('should not revert the spied function on reset if the property value of the spied function has been altered', () => {
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
+		mockContext.toBeSpiedUpon = 'some other value';
+		spy.reset();
+		expect(mockContext.toBeSpiedUpon).toEqual('some other value');
+	});
+
+	it('should not throw an error on reset if the object containing the spied function has been altered', () => {
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
+		mockContext = null;
+		expect(() => {
+			spy.reset();
+		}).not.toThrow();
+		expect(mockContext).toEqual(null);
+	});
+
 	it('should maintain a log of calls to the spied function', () => {
 		mockContext.sum = (num1, num2) => num1 + num2;
 		spy = new Spy(mockContext, 'sum');
