@@ -9,12 +9,12 @@ export type DecoratedFunction = {
 	calls: ?Array<CallEntry>
 };
 
-export type FunctionDecoratorConfig = {|
+export type FunctionDecoratorConfig = {
 	after?: () => void,
 	before?: () => void,
 	callThrough?: boolean,
 	fake?: () => mixed
-|};
+};
 
 type FunctionWithDecorationConfiguration = {
 	(): mixed,
@@ -24,8 +24,26 @@ type FunctionWithDecorationConfiguration = {
 	fake?: () => mixed
 };
 
+type DecoratedFunctionsEntry = {
+	originalFunction: () => mixed | FunctionWithDecorationConfiguration,
+	obj?: any,
+	functionName?: string
+};
+
 /**
- * Decorates a function to be spied upon.
+ * Map of decorated function to original function for use in resetting
+ * decorators.
+ */
+const decoratedFunctions: Map<
+	DecoratedFunction,
+	DecoratedFunctionsEntry
+> = new Map();
+
+/**
+ * Decorates a function to be spied upon. If a reference to a method is supplied
+ * i.e. object['functionName'], the method will automatically be replaced with
+ * the decorated version of the method. A reference to the decorated method
+ * will still be returned.
  * @param {Object|Function} objOrFxn The object containing the function to spy
  * 	on or the function itself.
  * @param {string|Object} [fxnNameOrConfig] The name of the function to spy on
@@ -132,10 +150,55 @@ export default function decorateFunction(
 		return returnVal;
 	};
 
+	// storage object in decorated functions map
+	const decoratedFunctionsEntry: DecoratedFunctionsEntry = { originalFunction };
+
 	// duplicate custom properties on original function
 	Object.keys(originalFunction).forEach((prop: string): void => {
 		decoratedFunction[prop] = originalFunction[prop];
 	});
 
+	// swap original with decorated function if method reference supplied
+	if (obj && functionName) {
+		obj[functionName] = decoratedFunction;
+		decoratedFunctionsEntry.obj = obj;
+		decoratedFunctionsEntry.functionName = functionName;
+		logger.info(`successfully decorated function ${functionName}`);
+	}
+
+	// store function to decorated function map
+	decoratedFunctions.set(decoratedFunction, decoratedFunctionsEntry);
+
 	return decoratedFunction;
+}
+
+/**
+ * Reverts function decoration. If a reference to a method had been originally
+ * supplied i.e. object['functionName'], the decorated method will automatically
+ * be reverted to the original method. A reference to the original method will
+ * still be returned.
+ * @param {Function} decoratedFunction The decorated function to revert.
+ * @returns {Function} The original function.
+ */
+export function revertDecoratedFunction(
+	decoratedFunction: DecoratedFunction
+): ?() => mixed | FunctionWithDecorationConfiguration {
+	const entry: DecoratedFunctionsEntry | void = decoratedFunctions.get(
+		decoratedFunction
+	);
+	let originalFunction: () => mixed | FunctionWithDecorationConfiguration;
+
+	if (typeof entry !== 'undefined') {
+		const { obj, functionName } = entry;
+		originalFunction = entry.originalFunction;
+
+		if (obj && functionName) {
+			obj[functionName] = originalFunction;
+			logger.info(`removed decoration on function ${functionName}`);
+		}
+	} else {
+		logger.info('could not find a record of decorated function to revert');
+	}
+
+	return originalFunction;
 }

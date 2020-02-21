@@ -1,6 +1,8 @@
 // @flow
 import { deleteSpyLog } from './utils/spyDecoratorLogger';
-import decorateFunction from './utils/decorateFunction';
+import decorateFunction, {
+	revertDecoratedFunction
+} from './utils/decorateFunction';
 import decorateProperty from './utils/decorateProperty';
 import type { DecoratedFunction } from './utils/decorateFunction';
 import type { PropertyDescriptor } from './utils/decorateProperty';
@@ -26,7 +28,11 @@ const spyList = [];
  * @param {string} functionName The name of the function to spy on.
  */
 function decorateFunctionForSpy(obj: any, functionName: string): void {
-	const baseObject: any = obj;
+	/**
+	 * Additional Spies deployed by this Spy to spy on custom methods
+	 * attached to the original function being spied on.
+	 */
+	const additionalSpies: Array<Spy> = [];
 	const originalFunction: () => mixed = obj[functionName];
 	const decoratedFunction: DecoratedFunction = decorateFunction.call(
 		this,
@@ -35,18 +41,12 @@ function decorateFunctionForSpy(obj: any, functionName: string): void {
 	);
 
 	/**
-	 * Additional Spies deployed by this Spy to spy on custom methods
-	 * attached to the original function being spied on.
+	 * Decorate custom function properties located on original function and
+	 * point to original prop on decorated function.
 	 */
-	const additionalSpies: Array<Spy> = [];
-
 	Object.keys(originalFunction)
 		.filter((prop: string): boolean => reservedProps.indexOf(prop) === -1)
 		.forEach((prop: string): void => {
-			/**
-			 * Decorate property and point to original prop on decorated
-			 * function.
-			 */
 			additionalSpies.push(new Spy(originalFunction, prop));
 			decoratedFunction[prop] = originalFunction[prop];
 		});
@@ -54,12 +54,9 @@ function decorateFunctionForSpy(obj: any, functionName: string): void {
 	// initialize reset method for function spies
 	this.reset = (): void => {
 		additionalSpies.forEach((spy: Spy): void => spy.reset());
-		baseObject[functionName] = originalFunction;
+		revertDecoratedFunction(decoratedFunction);
 		deleteSpyLog(obj, functionName);
 	};
-
-	// replace original function with decorated function
-	baseObject[functionName] = decoratedFunction;
 }
 
 /**
