@@ -1,7 +1,10 @@
 // @flow
-import decorateFunction from './decorateFunction';
+import decorateFunction, {
+	isDecoratedFunction,
+	revertDecoratedFunction
+} from './decorateFunction';
 import logger from './logger';
-import spyDecoratorLogger from './spyDecoratorLogger';
+import spyDecoratorLogger, { deleteSpyLog } from './spyDecoratorLogger';
 import type {
 	DecoratedFunction,
 	FunctionDecoratorConfig
@@ -28,17 +31,9 @@ export type PropertyDescriptor = {
  * @param {string} propName The name of the property to spy on.
  * @returns {Object} An object containing the original getter/setter if present.
  */
-export default function decorateProperty(
-	obj: any,
-	propName: string
-): {
-	originalGetter: ?() => any,
-	originalSetter: ?(any) => void
-} {
+export default function decorateProperty(obj: any, propName: string): void {
 	const descriptor: PropertyDescriptor =
 		Object.getOwnPropertyDescriptor(obj, propName) || {};
-	let originalGetter: () => any;
-	let originalSetter: any => void;
 
 	// maintain log of reads and writes
 	const writes: Array<any> = [];
@@ -75,23 +70,22 @@ export default function decorateProperty(
 	} else if (descriptor.configurable) {
 		if (descriptor.get) {
 			// decorate getter if already defined
-			originalGetter = descriptor.get;
 			descriptor.get = decorateFunction(
-				originalGetter.bind(obj),
+				descriptor.get,
 				({
 					before() {
 						reads += 1;
 						spyDecoratorLogger(({ obj, propName, reads }: PropReadLogConfig));
-					}
+					},
+					thisArg: obj
 				}: FunctionDecoratorConfig)
 			);
 		}
 
 		if (descriptor.set) {
 			// decorate setter if already defined
-			originalSetter = descriptor.set;
 			descriptor.set = decorateFunction(
-				originalSetter.bind(obj),
+				descriptor.set,
 				({
 					before(newValue) {
 						spyDecoratorLogger(
@@ -103,7 +97,8 @@ export default function decorateProperty(
 								writes
 							}: PropWriteLogConfig)
 						);
-					}
+					},
+					thisArg: obj
 				}: FunctionDecoratorConfig)
 			);
 		}
@@ -111,6 +106,53 @@ export default function decorateProperty(
 		// update descriptor with decorated methods
 		Object.defineProperty(obj, propName, descriptor);
 	}
+}
 
-	return { originalGetter, originalSetter };
+/**
+ * Reverts property getter and setter decoration.
+ * @param {Object} obj The object containing the property to revert.
+ * @param {string} propName The name of the property to revert.
+ */
+export function revertDecoratedProperty(obj: { ... }, propName: string): void {
+	// reset getter/setter
+	const baseObject: { ... } = obj;
+	const descriptor: ?PropertyDescriptor = Object.getOwnPropertyDescriptor(
+		obj,
+		propName
+	);
+
+	if (descriptor && descriptor.configurable) {
+		// do the opposite of the decorator
+		if (
+			!isDecoratedFunction(descriptor.get) &&
+			!isDecoratedFunction(descriptor.set)
+		) {
+			const originalValue: mixed = baseObject[propName];
+			delete baseObject[propName];
+			baseObject[propName] = originalValue;
+		} else {
+			const { get, set, ...props } = descriptor;
+			const newDescriptor: PropertyDescriptor = { ...props };
+
+			if (typeof get === 'function') {
+				const originalGetter: ?() => mixed = revertDecoratedFunction(get);
+
+				if (typeof originalGetter === 'function') {
+					newDescriptor.get = originalGetter;
+				}
+			}
+
+			if (typeof set === 'function') {
+				const originalSetter: ?() => mixed = revertDecoratedFunction(set);
+
+				if (typeof originalSetter === 'function') {
+					newDescriptor.set = originalSetter;
+				}
+			}
+
+			Object.defineProperty(baseObject, propName, newDescriptor);
+		}
+	}
+
+	deleteSpyLog(obj, propName);
 }

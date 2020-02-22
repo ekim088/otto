@@ -6,29 +6,32 @@ import type { CallEntry, FunctionLogConfig } from './spyDecoratorLogger';
 
 export type DecoratedFunction = {
 	(): any,
-	calls?: Array<CallEntry>
+	calls?: Array<CallEntry>,
+	...
 };
 
-export type FunctionDecoratorConfig = {
+export type FunctionDecoratorConfig = {|
 	after?: any => void,
 	before?: () => void,
 	callThrough?: boolean,
-	fake?: () => any
-};
+	fake?: () => any,
+	thisArg?: mixed
+|};
 
 type FunctionWithDecorationConfiguration = {
 	(): any,
 	after?: any => void,
 	before?: () => void,
 	callThrough?: boolean,
-	fake?: () => any
+	fake?: () => any,
+	thisArg?: mixed
 };
 
-type DecoratedFunctionsEntry = {
+type DecoratedFunctionsEntry = {|
 	originalFunction: () => any | FunctionWithDecorationConfiguration,
 	obj?: any,
 	functionName?: string
-};
+|};
 
 /**
  * Map of decorated function to original function for use in resetting
@@ -51,6 +54,15 @@ const decoratedFunctions: Map<
  * 	first argument.
  * @param {Object} [config] Configuration for function decoration if the first
  * 	two arguments are the object and name of function to spy on.
+ * 	`after`: A function to call after the function to be decorated.
+ * 	`before`: A function to call before the function to be decorated.
+ * 	`callThrough`: A boolean indicating whether to progresss through the
+ * 		function once called. Defaults to `true`.
+ * 	`fake`: A function to call in place of the function to be decorated.
+ * 	`thisArg`: The value to be passed as the `this` parameter to the target
+ * 		function(s) when the decorated function is called. Also applies to
+ * 		`after`, `before`, and `fake`. Defaults to the `objOrFxn` argument
+ * 		passed to `decorateFunction`.
  * @returns {Function} The decorated function.
  */
 export default function decorateFunction(
@@ -93,7 +105,8 @@ export default function decorateFunction(
 			callThrough = typeof config.callThrough === 'boolean'
 				? config.callThrough
 				: true,
-			fake
+			fake,
+			thisArg = obj
 		} = config;
 
 		// call `fake` function instead of original if defined
@@ -117,7 +130,7 @@ export default function decorateFunction(
 			if (typeof before === 'function') {
 				try {
 					// call before with a copy of the spied function's arguments
-					before.apply(obj, clone(Array.from(args)));
+					before.apply(thisArg, clone(Array.from(args)));
 				} catch (error) {
 					logger.error(
 						`an error occurred while calling before: ${error.message}`
@@ -126,7 +139,7 @@ export default function decorateFunction(
 			}
 
 			try {
-				returnVal = baseFunction.apply(obj, args);
+				returnVal = baseFunction.apply(thisArg, args);
 				logConfig.return = clone(returnVal);
 			} catch (error) {
 				logger.error(
@@ -138,7 +151,7 @@ export default function decorateFunction(
 			if (typeof after === 'function') {
 				try {
 					// call after with a copy of spied function's return value
-					after.call(obj, clone(returnVal));
+					after.call(thisArg, clone(returnVal));
 				} catch (error) {
 					logger.error(
 						`an error occurred while calling after: ${error.message}`
@@ -174,6 +187,17 @@ export default function decorateFunction(
 }
 
 /**
+ * Returns a boolean asserting whether a function has been decorated via
+ * `decorateFunction`.
+ * @param {Function} func The function to test for decoration.
+ * @returns {boolean} `true` if the function has been decorated via
+ * 	`decorateFunction`; otherwise `false`.
+ */
+export function isDecoratedFunction(func: any): boolean {
+	return typeof func === 'function' && decoratedFunctions.has(func);
+}
+
+/**
  * Reverts function decoration. If a reference to a method had been originally
  * supplied i.e. object['functionName'], the decorated method will automatically
  * be reverted to the original method. A reference to the original method will
@@ -183,7 +207,7 @@ export default function decorateFunction(
  */
 export function revertDecoratedFunction(
 	decoratedFunction: DecoratedFunction
-): ?() => any | FunctionWithDecorationConfiguration {
+): ?(() => any) | FunctionWithDecorationConfiguration | void {
 	const entry: DecoratedFunctionsEntry | void = decoratedFunctions.get(
 		decoratedFunction
 	);
@@ -212,6 +236,9 @@ export function revertDecoratedFunction(
 				);
 			}
 		}
+
+		// delete decorated function entry
+		decoratedFunctions.delete(decoratedFunction);
 	} else {
 		logger.info('could not find a record of decorated function to revert');
 	}
