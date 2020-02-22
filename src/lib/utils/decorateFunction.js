@@ -5,27 +5,27 @@ import spyDecoratorLogger, { deleteSpyLog } from './spyDecoratorLogger';
 import type { CallEntry, FunctionLogConfig } from './spyDecoratorLogger';
 
 export type DecoratedFunction = {
-	(): mixed,
-	calls: ?Array<CallEntry>
+	(): any,
+	calls?: Array<CallEntry>
 };
 
 export type FunctionDecoratorConfig = {
-	after?: () => void,
+	after?: any => void,
 	before?: () => void,
 	callThrough?: boolean,
-	fake?: () => mixed
+	fake?: () => any
 };
 
 type FunctionWithDecorationConfiguration = {
-	(): mixed,
-	after?: () => void,
+	(): any,
+	after?: any => void,
 	before?: () => void,
 	callThrough?: boolean,
-	fake?: () => mixed
+	fake?: () => any
 };
 
 type DecoratedFunctionsEntry = {
-	originalFunction: () => mixed | FunctionWithDecorationConfiguration,
+	originalFunction: () => any | FunctionWithDecorationConfiguration,
 	obj?: any,
 	functionName?: string
 };
@@ -85,7 +85,7 @@ export default function decorateFunction(
 	// generate decorated function
 	const decoratedFunction: DecoratedFunction = function decoratedFunction(
 		...args: Array<any>
-	): mixed {
+	): any {
 		// determine decoration configuration
 		const {
 			after,
@@ -97,7 +97,7 @@ export default function decorateFunction(
 		} = config;
 
 		// call `fake` function instead of original if defined
-		const baseFunction: () => mixed =
+		const baseFunction: () => any =
 			typeof fake === 'function' ? fake : originalFunction;
 
 		// configuration for generating log entry to `calls` array
@@ -108,7 +108,7 @@ export default function decorateFunction(
 			propName: functionName,
 			return: undefined
 		};
-		let returnVal: mixed;
+		let returnVal: any;
 
 		logger.info(`spied on ${functionName}`);
 
@@ -116,7 +116,8 @@ export default function decorateFunction(
 		if (callThrough) {
 			if (typeof before === 'function') {
 				try {
-					before.apply(obj);
+					// call before with a copy of the spied function's arguments
+					before.apply(obj, clone(Array.from(args)));
 				} catch (error) {
 					logger.error(
 						`an error occurred while calling before: ${error.message}`
@@ -136,7 +137,8 @@ export default function decorateFunction(
 
 			if (typeof after === 'function') {
 				try {
-					after.apply(obj);
+					// call after with a copy of spied function's return value
+					after.call(obj, clone(returnVal));
 				} catch (error) {
 					logger.error(
 						`an error occurred while calling after: ${error.message}`
@@ -168,7 +170,6 @@ export default function decorateFunction(
 
 	// store function to decorated function map
 	decoratedFunctions.set(decoratedFunction, decoratedFunctionsEntry);
-
 	return decoratedFunction;
 }
 
@@ -182,11 +183,11 @@ export default function decorateFunction(
  */
 export function revertDecoratedFunction(
 	decoratedFunction: DecoratedFunction
-): ?() => mixed | FunctionWithDecorationConfiguration {
+): ?() => any | FunctionWithDecorationConfiguration {
 	const entry: DecoratedFunctionsEntry | void = decoratedFunctions.get(
 		decoratedFunction
 	);
-	let originalFunction: () => mixed | FunctionWithDecorationConfiguration;
+	let originalFunction: () => any | FunctionWithDecorationConfiguration;
 
 	if (typeof entry !== 'undefined') {
 		const { obj, functionName } = entry;

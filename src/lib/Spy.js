@@ -98,13 +98,13 @@ function decoratePropertyForSpy(obj: any, propName: string): void {
 
 export default class Spy {
 	// flow annotations
-	after: ?() => mixed;
+	after: ?(any) => void;
 
-	before: ?() => mixed;
+	before: ?() => void;
 
 	callThrough: boolean;
 
-	fake: ?() => mixed;
+	fake: ?() => any;
 
 	reset: () => void;
 

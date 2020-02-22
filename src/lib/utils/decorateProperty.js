@@ -1,6 +1,11 @@
 // @flow
+import decorateFunction from './decorateFunction';
 import logger from './logger';
 import spyDecoratorLogger from './spyDecoratorLogger';
+import type {
+	DecoratedFunction,
+	FunctionDecoratorConfig
+} from './decorateFunction';
 import type {
 	PropReadLogConfig,
 	PropWriteLogConfig
@@ -9,8 +14,8 @@ import type {
 export type PropertyDescriptor = {
 	value?: any,
 	writable?: boolean,
-	get?: () => mixed | void,
-	set?: () => void | void,
+	get?: (() => any) | DecoratedFunction,
+	set?: (any => void) | DecoratedFunction,
 	configurable?: boolean,
 	enumerable?: boolean
 };
@@ -27,13 +32,13 @@ export default function decorateProperty(
 	obj: any,
 	propName: string
 ): {
-	originalGetter: ?() => mixed,
-	originalSetter: ?(any) => any
+	originalGetter: ?() => any,
+	originalSetter: ?(any) => void
 } {
 	const descriptor: PropertyDescriptor =
 		Object.getOwnPropertyDescriptor(obj, propName) || {};
-	let originalGetter: () => mixed;
-	let originalSetter: any => mixed;
+	let originalGetter: () => any;
+	let originalSetter: any => void;
 
 	// maintain log of reads and writes
 	const writes: Array<any> = [];
@@ -53,7 +58,6 @@ export default function decorateProperty(
 			},
 			set(newValue) {
 				const originalValue: any = propValue;
-				propValue = newValue;
 				spyDecoratorLogger(
 					({
 						obj,
@@ -63,6 +67,7 @@ export default function decorateProperty(
 						writes
 					}: PropWriteLogConfig)
 				);
+				propValue = newValue;
 			},
 			configurable: true,
 			enumerable: descriptor.enumerable
@@ -71,29 +76,36 @@ export default function decorateProperty(
 		if (descriptor.get) {
 			// decorate getter if already defined
 			originalGetter = descriptor.get;
-			descriptor.get = function() {
-				reads += 1;
-				spyDecoratorLogger(({ obj, propName, reads }: PropReadLogConfig));
-				return originalGetter.call(obj);
-			};
+			descriptor.get = decorateFunction(
+				originalGetter.bind(obj),
+				({
+					before() {
+						reads += 1;
+						spyDecoratorLogger(({ obj, propName, reads }: PropReadLogConfig));
+					}
+				}: FunctionDecoratorConfig)
+			);
 		}
 
 		if (descriptor.set) {
 			// decorate setter if already defined
 			originalSetter = descriptor.set;
-			descriptor.set = function(newValue) {
-				const originalValue: any = obj[propName];
-				originalSetter.call(obj, newValue);
-				spyDecoratorLogger(
-					({
-						obj,
-						originalValue,
-						propName,
-						newValue,
-						writes
-					}: PropWriteLogConfig)
-				);
-			};
+			descriptor.set = decorateFunction(
+				originalSetter.bind(obj),
+				({
+					before(newValue) {
+						spyDecoratorLogger(
+							({
+								obj,
+								originalValue: obj[propName],
+								propName,
+								newValue,
+								writes
+							}: PropWriteLogConfig)
+						);
+					}
+				}: FunctionDecoratorConfig)
+			);
 		}
 
 		// update descriptor with decorated methods
