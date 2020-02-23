@@ -146,24 +146,24 @@ describe('lib/Spy.function', () => {
 
 		mockContext.sum(1, 1);
 		expect(mockContext.sum.calls.length).toEqual(1);
-		expect(mockContext._spy_.sum.length).toEqual(1);
+		expect(mockContext._spy_.sum.calls.length).toEqual(1);
 		expect(mockContext.sum.calls[0]).toStrictEqual({
 			args: [1, 1],
 			return: 2
 		});
-		expect(mockContext._spy_.sum[0]).toStrictEqual({
+		expect(mockContext._spy_.sum.calls[0]).toStrictEqual({
 			args: [1, 1],
 			return: 2
 		});
 
 		mockContext.sum(5, '6');
 		expect(mockContext.sum.calls.length).toEqual(2);
-		expect(mockContext._spy_.sum.length).toEqual(2);
+		expect(mockContext._spy_.sum.calls.length).toEqual(2);
 		expect(mockContext.sum.calls[1]).toStrictEqual({
 			args: [5, '6'],
 			return: '56'
 		});
-		expect(mockContext._spy_.sum[1]).toStrictEqual({
+		expect(mockContext._spy_.sum.calls[1]).toStrictEqual({
 			args: [5, '6'],
 			return: '56'
 		});
@@ -251,7 +251,7 @@ describe('lib/Spy.function', () => {
 			args: [],
 			return: 1
 		});
-		expect(mockContext._spy_.someFunction[0]).toStrictEqual({
+		expect(mockContext._spy_.someFunction.calls[0]).toStrictEqual({
 			args: [],
 			return: 1
 		});
@@ -264,7 +264,7 @@ describe('lib/Spy.function', () => {
 			args: [],
 			return: 3
 		});
-		expect(mockContext._spy_.someFunction[2]).toStrictEqual({
+		expect(mockContext._spy_.someFunction.calls[2]).toStrictEqual({
 			args: [],
 			return: 3
 		});

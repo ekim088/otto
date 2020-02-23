@@ -1,8 +1,8 @@
 // @flow
 import clone from './clone';
 import logger from './logger';
-import spyDecoratorLogger, { deleteSpyLog } from './spyDecoratorLogger';
-import type { CallEntry, FunctionLogConfig } from './spyDecoratorLogger';
+import spyLogger, { deleteSpyLog } from './spyLogger';
+import type { CallEntry, SpyLog } from './spyLogger';
 
 export type DecoratedFunction = {
 	(...args: Array<any>): any,
@@ -34,17 +34,17 @@ const decoratedFunctions: Map<
 > = new Map();
 
 /**
- * Decorates a function to be spied upon. If a reference to a method is supplied
+ * Decorates a function. If a reference to a method is supplied
  * i.e. object['functionName'], the method will automatically be replaced with
  * the decorated version of the method. A reference to the decorated method
  * will still be returned.
- * @param {Object|Function} objOrFxn The object containing the function to spy
- * 	on or the function itself.
- * @param {string|Object} [fxnNameOrConfig] The name of the function to spy on
+ * @param {Object|Function} objOrFxn Either the object containing a method to
+ * 	decorate or the function to decorate itself.
+ * @param {string|Object} [fxnNameOrConfig] The name of the method to decorate
  * 	or configuration for function decoration if the function is passed as the
  * 	first argument.
  * @param {Object} [decoratorConfig] Configuration for function decoration if
- * 	the first two arguments are the object and name of function to spy on.
+ * 	the first two arguments are the object and name of function to decorate.
  * 	`after`: A function to call after the function to be decorated.
  * 	`before`: A function to call before the function to be decorated.
  * 	`callThrough`: A boolean indicating whether to progresss through the
@@ -62,7 +62,7 @@ export default function decorateFunction(
 	decoratorConfig?: FunctionDecoratorConfig
 ): DecoratedFunction {
 	const obj: { ... } | ((...args: Array<any>) => any) = objOrFxn;
-	let functionName: string = 'an anonymous decorated function';
+	let functionName: ?string;
 	let originalFunction: (...args: Array<any>) => any = () => undefined;
 
 	// support decoration configuration on calling object itself
@@ -112,23 +112,27 @@ export default function decorateFunction(
 		// call `fake` function instead of original if defined
 		const baseFunction = typeof fake === 'function' ? fake : originalFunction;
 
-		// configuration for generating log entry to `calls` array
-		const logConfig: FunctionLogConfig = {
-			args: clone(Array.from(args)),
-			calls,
-			obj,
-			propName: functionName,
-			return: undefined
-		};
-		let returnVal;
+		// store values for log
+		const logArgs = clone(Array.from(args));
+		let logReturn: any;
+		let returnVal: any;
 
-		logger.info(`spied on ${functionName}`);
+		logger.info(
+			`called ${
+				functionName
+					? `decorated function ${functionName}`
+					: 'a decorated function'
+			}`
+		);
 
 		// call functions
 		if (callThrough) {
 			if (typeof before === 'function') {
 				try {
-					// call before with a copy of the spied function's arguments
+					/**
+					 * Call `before` with a copy of the decorated function's
+					 * arguments.
+					 */
 					before.apply(thisArg, clone(Array.from(args)));
 				} catch (error) {
 					logger.error(
@@ -139,17 +143,20 @@ export default function decorateFunction(
 
 			try {
 				returnVal = baseFunction.apply(thisArg, args);
-				logConfig.return = clone(returnVal);
+				logReturn = clone(returnVal);
 			} catch (error) {
 				logger.error(
-					`an error occurred while calling the spied function: ${error.message}`
+					`an error occurred while calling the decorated function: ${error.message}`
 				);
-				logConfig.return = `Error: ${error.message}`;
+				logReturn = `Error: ${error.message}`;
 			}
 
 			if (typeof after === 'function') {
 				try {
-					// call after with a copy of spied function's return value
+					/**
+					 * Call `after` with a copy of decorated function's return
+					 * value.
+					 */
 					after.call(thisArg, clone(returnVal));
 				} catch (error) {
 					logger.error(
@@ -160,7 +167,18 @@ export default function decorateFunction(
 		}
 
 		// log function call and return result from original function
-		spyDecoratorLogger(logConfig);
+		spyLogger(
+			({
+				obj,
+				propName: functionName,
+				update: {
+					functionCall: true,
+					args: logArgs,
+					calls,
+					return: logReturn
+				}
+			}: SpyLog)
+		);
 		return returnVal;
 	};
 

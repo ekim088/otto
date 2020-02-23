@@ -1,31 +1,34 @@
 // @flow
 import logger from './logger';
 
-export type CallEntry = {
-	args: Array<any>,
-	return: mixed
-};
-
-export type FunctionLogConfig = {|
-	args: Array<any>,
-	calls: Array<CallEntry>,
-	obj: any,
-	propName: string,
+export type CallEntry = {|
+	args: Array<mixed>,
 	return: mixed
 |};
 
-export type PropReadLogConfig = {|
-	obj: any,
-	propName: string,
+type FunctionCallLog = {|
+	functionCall: true,
+	args: Array<mixed>,
+	calls: Array<CallEntry>,
+	return: mixed
+|};
+
+type PropReadLog = {|
+	propRead: true,
 	reads: number
 |};
 
-export type PropWriteLogConfig = {|
+type PropWriteLog = {|
+	propWrite: true,
 	newValue: mixed,
-	obj: { ... },
 	originalValue: mixed,
-	propName: string,
-	writes: Array<any>
+	writes: Array<mixed>
+|};
+
+export type SpyLog = {|
+	obj: any,
+	propName: ?string,
+	update: FunctionCallLog | PropReadLog | PropWriteLog
 |};
 
 /**
@@ -33,33 +36,29 @@ export type PropWriteLogConfig = {|
  * reapplies object's logging specific property to prevent overwriting.
  * @param {Object} config Log message configuration.
  */
-export default function spyDecoratorLogger(
-	config: FunctionLogConfig | PropReadLogConfig | PropWriteLogConfig
-): void {
-	const { obj, propName } = config;
-	// $FlowFixMe
-	const calls: boolean | Array<CallEntry> =
-		Array.isArray(config.calls) && config.calls;
-	const reads = typeof config.reads !== 'undefined' && config.reads;
-	const writes = Array.isArray(config.writes) && config.writes;
+export default function spyLogger(config: SpyLog): void {
+	const { obj } = config;
+	const { propName, update } = config;
 
 	// initialize logging props on object
 	obj._spy_ = typeof obj._spy_ === 'object' ? obj._spy_ : {};
 
-	if (reads || writes) {
+	if (propName) {
 		obj._spy_[propName] =
 			typeof obj._spy_[propName] === 'object' ? obj._spy_[propName] : {};
 	}
 
 	// add new log entry
-	if (reads) {
+	if (update.propRead && propName) {
+		const { reads } = update;
 		obj._spy_[propName].reads = reads;
-		logger.info(`read value of ${propName}`);
-	} else if (writes) {
-		const originalValue =
-			typeof config.originalValue !== 'undefined' && config.originalValue;
-		const newValue = typeof config.newValue !== 'undefined' && config.newValue;
-		// $FlowFixMe
+		logger.info(
+			`read value of ${propName} a total of ${String(reads)} time${
+				reads === 1 ? '' : 's'
+			}`
+		);
+	} else if (update.propWrite && propName) {
+		const { newValue, originalValue, writes } = update;
 		writes.push(newValue);
 		obj._spy_[propName].writes = writes;
 		logger.info(
@@ -67,24 +66,20 @@ export default function spyDecoratorLogger(
 				newValue
 			)}`
 		);
-	} else if (calls) {
-		// $FlowFixMe
-		const args: Array<any> =
-			(typeof config.args !== 'undefined' && config.args) || [];
-		// $FlowFixMe
-		const returnVal = config.return;
+	} else if (update.functionCall) {
+		const { args, calls, return: returnVal } = update;
 		const entry: CallEntry = {
 			args,
 			return: returnVal
 		};
-		// $FlowFixMe
+
 		calls.push(entry);
 
-		if (obj && propName) {
-			obj[propName].calls = calls;
-			obj._spy_[propName] = calls;
-		} else {
+		if (!propName) {
 			obj.calls = calls;
+		} else {
+			obj[propName].calls = calls;
+			obj._spy_[propName].calls = calls;
 		}
 	}
 }
@@ -96,7 +91,7 @@ export default function spyDecoratorLogger(
  * @param {string} propName The name of the property to spy on.
  */
 export function deleteSpyLog(obj: any, propName: string) {
-	const baseObj: any = obj;
+	const baseObj = obj;
 
 	if (typeof baseObj._spy_ === 'object') {
 		delete baseObj._spy_[propName];

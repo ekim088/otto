@@ -4,15 +4,12 @@ import decorateFunction, {
 	revertDecoratedFunction
 } from './decorateFunction';
 import logger from './logger';
-import spyDecoratorLogger, { deleteSpyLog } from './spyDecoratorLogger';
+import spyLogger, { deleteSpyLog } from './spyLogger';
 import type {
 	DecoratedFunction,
 	FunctionDecoratorConfig
 } from './decorateFunction';
-import type {
-	PropReadLogConfig,
-	PropWriteLogConfig
-} from './spyDecoratorLogger';
+import type { SpyLog } from './spyLogger';
 
 type PropertyDescriptor<T> = {
 	configurable?: boolean,
@@ -48,19 +45,31 @@ export default function decorateProperty(obj: { ... }, propName: string): void {
 		Object.defineProperty(obj, propName, {
 			get() {
 				reads += 1;
-				spyDecoratorLogger(({ obj, propName, reads }: PropReadLogConfig));
+				spyLogger(
+					({
+						obj,
+						propName,
+						update: {
+							propRead: true,
+							reads
+						}
+					}: SpyLog)
+				);
 				return propValue;
 			},
 			set(newValue: mixed) {
 				const originalValue: mixed = propValue;
-				spyDecoratorLogger(
+				spyLogger(
 					({
 						obj,
-						originalValue,
 						propName,
-						newValue,
-						writes
-					}: PropWriteLogConfig)
+						update: {
+							propWrite: true,
+							originalValue,
+							newValue,
+							writes
+						}
+					}: SpyLog)
 				);
 				propValue = newValue;
 			},
@@ -75,7 +84,16 @@ export default function decorateProperty(obj: { ... }, propName: string): void {
 				({
 					before() {
 						reads += 1;
-						spyDecoratorLogger(({ obj, propName, reads }: PropReadLogConfig));
+						spyLogger(
+							({
+								obj,
+								propName,
+								update: {
+									propRead: true,
+									reads
+								}
+							}: SpyLog)
+						);
 					},
 					thisArg: obj
 				}: FunctionDecoratorConfig)
@@ -88,14 +106,17 @@ export default function decorateProperty(obj: { ... }, propName: string): void {
 				descriptor.set,
 				({
 					before(newValue) {
-						spyDecoratorLogger(
+						spyLogger(
 							({
 								obj,
-								originalValue: obj[propName],
 								propName,
-								newValue,
-								writes
-							}: PropWriteLogConfig)
+								update: {
+									propWrite: true,
+									originalValue: obj[propName],
+									newValue,
+									writes
+								}
+							}: SpyLog)
 						);
 					},
 					thisArg: obj

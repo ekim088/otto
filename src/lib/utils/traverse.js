@@ -6,13 +6,13 @@
  * @param {string} path The path to the nested object property not including
  	the originating object.
  */
-export default function traverse(origin: any, path: string): any {
+export default function traverse(origin: { ... }, path: string): mixed {
 	const pathComponents: Array<string> =
 		typeof path === 'string' ? path.split('.') : [];
-	let val: any = origin;
+	let val: mixed = origin;
 
 	while (val && pathComponents.length > 0) {
-		val = val[pathComponents.shift()];
+		val = ((val: any): { ... })[pathComponents.shift()];
 	}
 
 	return val;
