@@ -14,13 +14,14 @@ import type {
 	PropWriteLogConfig
 } from './spyDecoratorLogger';
 
-export type PropertyDescriptor = {
-	value?: any,
-	writable?: boolean,
-	get?: (() => any) | DecoratedFunction,
-	set?: (any => void) | DecoratedFunction,
+type PropertyDescriptor<T> = {
 	configurable?: boolean,
-	enumerable?: boolean
+	enumerable?: boolean,
+	get?: () => T,
+	set?: (value: T) => void,
+	value?: T,
+	writable?: boolean,
+	...
 };
 
 /**
@@ -31,19 +32,18 @@ export type PropertyDescriptor = {
  * @param {string} propName The name of the property to spy on.
  * @returns {Object} An object containing the original getter/setter if present.
  */
-export default function decorateProperty(obj: any, propName: string): void {
-	const descriptor: PropertyDescriptor =
-		Object.getOwnPropertyDescriptor(obj, propName) || {};
+export default function decorateProperty(obj: { ... }, propName: string): void {
+	const descriptor = Object.getOwnPropertyDescriptor(obj, propName);
 
 	// maintain log of reads and writes
-	const writes: Array<any> = [];
+	const writes: Array<mixed> = [];
 	let reads: number = 0;
 
 	if (typeof descriptor === 'undefined') {
 		logger.error(`${propName} is not a defined property`);
 	} else if ('value' in descriptor && descriptor.writable) {
 		// if no getter/setter defined
-		let propValue: any = obj[propName];
+		let propValue: mixed = obj[propName];
 
 		Object.defineProperty(obj, propName, {
 			get() {
@@ -51,8 +51,8 @@ export default function decorateProperty(obj: any, propName: string): void {
 				spyDecoratorLogger(({ obj, propName, reads }: PropReadLogConfig));
 				return propValue;
 			},
-			set(newValue) {
-				const originalValue: any = propValue;
+			set(newValue: mixed) {
+				const originalValue: mixed = propValue;
 				spyDecoratorLogger(
 					({
 						obj,
@@ -115,11 +115,8 @@ export default function decorateProperty(obj: any, propName: string): void {
  */
 export function revertDecoratedProperty(obj: { ... }, propName: string): void {
 	// reset getter/setter
-	const baseObject: { ... } = obj;
-	const descriptor: ?PropertyDescriptor = Object.getOwnPropertyDescriptor(
-		obj,
-		propName
-	);
+	const baseObject = obj;
+	const descriptor = Object.getOwnPropertyDescriptor(obj, propName);
 
 	if (descriptor && descriptor.configurable) {
 		// do the opposite of the decorator
@@ -132,22 +129,18 @@ export function revertDecoratedProperty(obj: { ... }, propName: string): void {
 			baseObject[propName] = originalValue;
 		} else {
 			const { get, set, ...props } = descriptor;
-			const newDescriptor: PropertyDescriptor = { ...props };
+			const newDescriptor: PropertyDescriptor<mixed> = { ...props };
 
-			if (typeof get === 'function') {
-				const originalGetter: ?() => mixed = revertDecoratedFunction(get);
-
-				if (typeof originalGetter === 'function') {
-					newDescriptor.get = originalGetter;
-				}
+			if (isDecoratedFunction(descriptor.get)) {
+				newDescriptor.get = revertDecoratedFunction(
+					((get: any): DecoratedFunction)
+				);
 			}
 
-			if (typeof set === 'function') {
-				const originalSetter: ?() => mixed = revertDecoratedFunction(set);
-
-				if (typeof originalSetter === 'function') {
-					newDescriptor.set = originalSetter;
-				}
+			if (isDecoratedFunction(descriptor.set)) {
+				newDescriptor.set = revertDecoratedFunction(
+					((set: any): DecoratedFunction)
+				);
 			}
 
 			Object.defineProperty(baseObject, propName, newDescriptor);

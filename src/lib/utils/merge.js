@@ -6,17 +6,23 @@
  * @param {Array<*>} args Any number of additional objects to merge.
  * @returns {*} The merged object.
  */
-export default function merge(baseObj: {}, ...args: Array<mixed>): any {
-	let mergedObj: any = baseObj;
+export default function merge<T: mixed>(
+	baseObj: any,
+	...args: Array<T>
+): $Shape<T> {
+	let mergedObj = baseObj;
 
-	args.forEach((objToMerge: mixed): void => {
+	args.forEach(objToMerge => {
 		if (typeof objToMerge === 'object' && objToMerge !== null) {
 			if (typeof mergedObj !== 'object') {
 				mergedObj = {};
 			}
 
 			Object.keys(objToMerge).forEach((key: string): void => {
-				mergedObj[key] = merge(mergedObj[key], objToMerge[key]);
+				((mergedObj: any): { ... })[key] = merge(
+					((mergedObj: any): { ... })[key],
+					objToMerge[key]
+				);
 			});
 		} else {
 			mergedObj = objToMerge;

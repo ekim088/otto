@@ -6,27 +6,27 @@ export type CallEntry = {
 	return: mixed
 };
 
-export type FunctionLogConfig = {
+export type FunctionLogConfig = {|
 	args: Array<any>,
 	calls: Array<CallEntry>,
 	obj: any,
 	propName: string,
 	return: mixed
-};
+|};
 
-export type PropReadLogConfig = {
+export type PropReadLogConfig = {|
 	obj: any,
 	propName: string,
 	reads: number
-};
+|};
 
-export type PropWriteLogConfig = {
-	newValue: any,
-	obj: any,
-	originalValue: any,
+export type PropWriteLogConfig = {|
+	newValue: mixed,
+	obj: { ... },
+	originalValue: mixed,
 	propName: string,
 	writes: Array<any>
-};
+|};
 
 /**
  * Update record of interactions with the function or property. Initializes or

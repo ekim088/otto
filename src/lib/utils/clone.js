@@ -6,7 +6,7 @@ import merge from './merge';
  * @param {*} orig The original input.
  * @returns {*} A clone of the original input.
  */
-export default function clone(orig: any): any {
+export default function clone<T>(orig: T): T {
 	let cloned = orig;
 
 	if (Array.isArray(orig)) {

@@ -5,31 +5,22 @@ import spyDecoratorLogger, { deleteSpyLog } from './spyDecoratorLogger';
 import type { CallEntry, FunctionLogConfig } from './spyDecoratorLogger';
 
 export type DecoratedFunction = {
-	(): any,
+	(...args: Array<any>): any,
 	calls?: Array<CallEntry>,
 	...
 };
 
 export type FunctionDecoratorConfig = {|
-	after?: any => void,
-	before?: () => void,
+	after?: mixed => void,
+	before?: (...args: Array<any>) => void,
 	callThrough?: boolean,
-	fake?: () => any,
+	fake?: (...args: Array<any>) => mixed,
 	thisArg?: mixed
 |};
 
-type FunctionWithDecorationConfiguration = {
-	(): any,
-	after?: any => void,
-	before?: () => void,
-	callThrough?: boolean,
-	fake?: () => any,
-	thisArg?: mixed
-};
-
 type DecoratedFunctionsEntry = {|
-	originalFunction: () => any | FunctionWithDecorationConfiguration,
-	obj?: any,
+	originalFunction: (...args: Array<any>) => any,
+	obj?: { ... },
 	functionName?: string
 |};
 
@@ -52,8 +43,8 @@ const decoratedFunctions: Map<
  * @param {string|Object} [fxnNameOrConfig] The name of the function to spy on
  * 	or configuration for function decoration if the function is passed as the
  * 	first argument.
- * @param {Object} [config] Configuration for function decoration if the first
- * 	two arguments are the object and name of function to spy on.
+ * @param {Object} [decoratorConfig] Configuration for function decoration if
+ * 	the first two arguments are the object and name of function to spy on.
  * 	`after`: A function to call after the function to be decorated.
  * 	`before`: A function to call before the function to be decorated.
  * 	`callThrough`: A boolean indicating whether to progresss through the
@@ -66,12 +57,13 @@ const decoratedFunctions: Map<
  * @returns {Function} The decorated function.
  */
 export default function decorateFunction(
-	objOrFxn: any | FunctionWithDecorationConfiguration,
-	...decorationArgs: Array<any>
+	objOrFxn: { ... } | ((...args: Array<any>) => any),
+	fxnNameOrConfig?: string | FunctionDecoratorConfig,
+	decoratorConfig?: FunctionDecoratorConfig
 ): DecoratedFunction {
-	let functionName: string = '';
-	const obj: any | FunctionWithDecorationConfiguration = objOrFxn;
-	let originalFunction: FunctionWithDecorationConfiguration = objOrFxn;
+	const obj: { ... } | ((...args: Array<any>) => any) = objOrFxn;
+	let functionName: string = 'an anonymous decorated function';
+	let originalFunction: (...args: Array<any>) => any = () => undefined;
 
 	// support decoration configuration on calling object itself
 	let config: FunctionDecoratorConfig = this || originalFunction || {};
@@ -79,12 +71,20 @@ export default function decorateFunction(
 	// determine function to decorate based on known function signatures
 	if (
 		(typeof objOrFxn === 'object' || typeof objOrFxn === 'function') &&
-		typeof decorationArgs[0] === 'string'
+		typeof fxnNameOrConfig === 'string'
 	) {
-		[functionName, config = config] = decorationArgs;
+		functionName = fxnNameOrConfig;
 		originalFunction = obj[functionName];
+
+		if (typeof decoratorConfig === 'object') {
+			config = decoratorConfig;
+		}
 	} else if (typeof objOrFxn === 'function') {
-		[config = config] = decorationArgs;
+		originalFunction = objOrFxn;
+
+		if (typeof fxnNameOrConfig === 'object') {
+			config = fxnNameOrConfig;
+		}
 	} else {
 		throw new TypeError(
 			'unknown combination of arguments for decorateFunction call'
@@ -110,8 +110,7 @@ export default function decorateFunction(
 		} = config;
 
 		// call `fake` function instead of original if defined
-		const baseFunction: () => any =
-			typeof fake === 'function' ? fake : originalFunction;
+		const baseFunction = typeof fake === 'function' ? fake : originalFunction;
 
 		// configuration for generating log entry to `calls` array
 		const logConfig: FunctionLogConfig = {
@@ -121,7 +120,7 @@ export default function decorateFunction(
 			propName: functionName,
 			return: undefined
 		};
-		let returnVal: any;
+		let returnVal;
 
 		logger.info(`spied on ${functionName}`);
 
@@ -193,8 +192,11 @@ export default function decorateFunction(
  * @returns {boolean} `true` if the function has been decorated via
  * 	`decorateFunction`; otherwise `false`.
  */
-export function isDecoratedFunction(func: any): boolean {
-	return typeof func === 'function' && decoratedFunctions.has(func);
+export function isDecoratedFunction(func: mixed): boolean {
+	return (
+		typeof func === 'function' &&
+		decoratedFunctions.has(((func: any): DecoratedFunction))
+	);
 }
 
 /**
@@ -207,13 +209,13 @@ export function isDecoratedFunction(func: any): boolean {
  */
 export function revertDecoratedFunction(
 	decoratedFunction: DecoratedFunction
-): ?(() => any) | FunctionWithDecorationConfiguration | void {
-	const entry: DecoratedFunctionsEntry | void = decoratedFunctions.get(
-		decoratedFunction
-	);
-	let originalFunction: () => any | FunctionWithDecorationConfiguration;
+): ((...args: Array<any>) => any) | void {
+	const entry: DecoratedFunctionsEntry | boolean | void =
+		isDecoratedFunction(decoratedFunction) &&
+		decoratedFunctions.get(decoratedFunction);
+	let originalFunction: (...args: Array<any>) => any;
 
-	if (typeof entry !== 'undefined') {
+	if (typeof entry === 'object' && entry !== null) {
 		const { obj, functionName } = entry;
 		originalFunction = entry.originalFunction;
 
@@ -221,7 +223,7 @@ export function revertDecoratedFunction(
 		 * Reapply custom function properties from decorated to original
 		 * function to retain updates to values.
 		 */
-		Object.keys(decoratedFunction).forEach((prop: string): void => {
+		Object.keys(decoratedFunction).forEach((prop: string) => {
 			originalFunction[prop] = decoratedFunction[prop];
 		});
 

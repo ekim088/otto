@@ -28,7 +28,7 @@ const spyList = [];
  * @param {Object} obj The object containing the function to spy on.
  * @param {string} functionName The name of the function to spy on.
  */
-function decorateFunctionForSpy(obj: any, functionName: string): void {
+function decorateFunctionForSpy(obj: { ... }, functionName: string): void {
 	/**
 	 * Additional Spies deployed by this Spy to spy on custom methods
 	 * attached to the original function being spied on.
@@ -42,13 +42,13 @@ function decorateFunctionForSpy(obj: any, functionName: string): void {
 
 	// spy on custom function properties that had been applied to spied function
 	Object.keys(decoratedFunction)
-		.filter((prop: string): boolean => reservedProps.indexOf(prop) === -1)
-		.forEach((prop: string): number =>
+		.filter((prop: string) => reservedProps.indexOf(prop) === -1)
+		.forEach((prop: string) =>
 			additionalSpies.push(new Spy(decoratedFunction, prop))
 		);
 
 	// initialize reset method for function spies
-	this.reset = (): void => {
+	this.reset = () => {
 		additionalSpies.forEach((spy: Spy): void => spy.reset());
 		revertDecoratedFunction(decoratedFunction);
 	};
@@ -59,22 +59,22 @@ function decorateFunctionForSpy(obj: any, functionName: string): void {
  * @param {Object} obj The object containing the property to spy on.
  * @param {string} propName The name of the property to spy on.
  */
-function decoratePropertyForSpy(obj: any, propName: string): void {
+function decoratePropertyForSpy(obj: { ... }, propName: string): void {
 	decorateProperty(obj, propName);
 
 	// initialize reset method for property spies
-	this.reset = (): void => revertDecoratedProperty(obj, propName);
+	this.reset = () => revertDecoratedProperty(obj, propName);
 }
 
 export default class Spy {
 	// flow annotations
-	after: ?(any) => void;
+	after: (?mixed) => void;
 
-	before: ?() => void;
+	before: ?(...args: Array<any>) => void;
 
 	callThrough: boolean;
 
-	fake: ?() => any;
+	fake: ?(...args: Array<any>) => mixed;
 
 	reset: () => void;
 
@@ -84,7 +84,7 @@ export default class Spy {
 	 * @param {Object} obj The object containing the property to spy on.
 	 * @param {string} propName The name of the property to spy on.
 	 */
-	constructor(obj: any, propName: string) {
+	constructor(obj: { ... }, propName: string) {
 		if (!obj || !(propName in obj)) {
 			throw new TypeError('must spy on defined object property');
 		}
@@ -103,9 +103,9 @@ export default class Spy {
 	 * @param {Object} obj The object containing the property to spy on.
 	 * @param {string} propName The name of the property to spy on.
 	 */
-	initiate(obj: any, propName: string): void {
+	initiate(obj: { ... }, propName: string): void {
 		// decorate property with either function or getter/setter decorator
-		const decorator: (any, string) => mixed =
+		const decorator =
 			typeof obj[propName] === 'function'
 				? decorateFunctionForSpy
 				: decoratePropertyForSpy;
@@ -114,6 +114,6 @@ export default class Spy {
 
 	// Resets all known instantiated spies.
 	static resetAllSpies(): void {
-		spyList.forEach((spy: Spy): void => spy.reset());
+		spyList.forEach((spy: Spy) => spy.reset());
 	}
 }
