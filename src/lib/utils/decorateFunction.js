@@ -10,13 +10,14 @@ export type DecoratedFunction = {
 	...
 };
 
-export type FunctionDecoratorConfig = {|
+export type FunctionDecoratorConfig = {
 	after?: mixed => void,
 	before?: (...args: Array<any>) => void,
 	callThrough?: boolean,
 	fake?: (...args: Array<any>) => mixed,
-	thisArg?: mixed
-|};
+	thisArg?: mixed,
+	...
+};
 
 type DecoratedFunctionsEntry = {|
 	originalFunction: (...args: Array<any>) => any,
@@ -66,7 +67,7 @@ export default function decorateFunction(
 	let originalFunction: (...args: Array<any>) => any = () => undefined;
 
 	// support decoration configuration on calling object itself
-	let config: FunctionDecoratorConfig = this || originalFunction || {};
+	let config: FunctionDecoratorConfig = this;
 
 	// determine function to decorate based on known function signatures
 	if (
@@ -90,6 +91,12 @@ export default function decorateFunction(
 			'unknown combination of arguments for decorateFunction call'
 		);
 	}
+
+	/**
+	 * Support decoration configuration directly on function if not passed
+	 * as an argument.
+	 */
+	config = config || originalFunction || {};
 
 	// log of calls to decorated function
 	const calls: Array<CallEntry> = [];

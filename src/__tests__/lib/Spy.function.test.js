@@ -44,99 +44,14 @@ describe('lib/Spy.function', () => {
 		expect(originalFunction).toHaveBeenCalled();
 	});
 
-	it('should call the function being spied upon with the correct arguments', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		mockContext.toBeSpiedUpon('arg1', 'arg2', ['arg3']);
-		expect(originalFunction).toHaveBeenCalledWith('arg1', 'arg2', ['arg3']);
-	});
-
-	it('should not call spied function if callThrough is disabled', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		spy.callThrough = false;
-		mockContext.toBeSpiedUpon();
-		expect(originalFunction).not.toHaveBeenCalled();
-	});
-
-	it('should call the before function before the spied function', () => {
+	it('should support applying decoration configuration directly to spy after initialization', () => {
 		spy = new Spy(mockContext, 'toBeSpiedUpon');
 		spy.before = jest.fn();
 		mockContext.toBeSpiedUpon();
 		expect(spy.before).toHaveBeenCalledBefore(originalFunction);
 	});
 
-	it('should call the before function with the same context as the spied function', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		spy.before = function() {
-			this.toBeCalledByBeforeAfter();
-		};
-		mockContext.toBeSpiedUpon();
-		expect(mockContext.toBeCalledByBeforeAfter).toHaveBeenCalled();
-	});
-
-	it('should call the after function after the spied function', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		spy.after = jest.fn();
-		mockContext.toBeSpiedUpon();
-		expect(spy.after).toHaveBeenCalledAfter(originalFunction);
-	});
-
-	it('should call the after function with the same context as the spied function', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		spy.after = function() {
-			this.toBeCalledByBeforeAfter();
-		};
-		mockContext.toBeSpiedUpon();
-		expect(mockContext.toBeCalledByBeforeAfter).toHaveBeenCalled();
-	});
-
-	it('should continue calling methods within the chain after an exception occurs', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		spy.before = function() {
-			throw new Error('throwing a test error');
-		};
-		mockContext.toBeSpiedUpon();
-		expect(originalFunction).toHaveBeenCalled();
-	});
-
-	it('should maintain the same return as the spied function', () => {
-		mockContext.newFunction = () => 'success';
-		spy = new Spy(mockContext, 'newFunction');
-		spy.before = jest.fn(() => 'failure');
-		spy.after = jest.fn(() => 'failure');
-		const result = mockContext.newFunction();
-		expect(spy.before).toHaveBeenCalled();
-		expect(spy.after).toHaveBeenCalled();
-		expect(result).toEqual('success');
-	});
-
-	it('should revert the spied function on reset', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		spy.before = jest.fn();
-		spy.after = jest.fn();
-		spy.reset();
-		expect(mockContext.toBeSpiedUpon).toBe(originalFunction);
-
-		mockContext.toBeSpiedUpon();
-		expect(originalFunction).toHaveBeenCalled();
-		expect(spy.before).not.toHaveBeenCalled();
-		expect(spy.after).not.toHaveBeenCalled();
-	});
-
-	it('should not revert the spied function on reset if the property value of the spied function has been altered', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		mockContext.toBeSpiedUpon = 'some other value';
-		spy.reset();
-		expect(mockContext.toBeSpiedUpon).toEqual('some other value');
-	});
-
-	it('should not throw an error on reset if the object containing the spied function has been altered', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		mockContext = null;
-		expect(() => {
-			spy.reset();
-		}).not.toThrow();
-		expect(mockContext).toEqual(null);
-	});
+	// TODO: review placement of tests below
 
 	it('should maintain a log of calls to the spied function', () => {
 		mockContext.sum = (num1, num2) => num1 + num2;
