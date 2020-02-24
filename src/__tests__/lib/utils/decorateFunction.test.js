@@ -250,4 +250,32 @@ describe('utils/decorateFunction', () => {
 		expect(isDecoratedFunction(mockContext.someFunction)).toEqual(false);
 		expect(isDecoratedFunction(storedFxnRef)).toEqual(true);
 	});
+
+	it('should decorate a prototype function so all object instances calling the prototype trigger the decorated function', () => {
+		class Sandwich {
+			constructor(meat) {
+				this.meat = meat;
+			}
+
+			updateMeat(meat) {
+				this.meat = meat;
+			}
+		}
+		const mySandwich = new Sandwich('turkey');
+		const theirSandwich = new Sandwich('ham');
+		decorateFunction(Sandwich.prototype, 'updateMeat', {
+			after() {
+				this.meat = `organic ${this.meat}`;
+			}
+		});
+		expect(() => {
+			mySandwich.updateMeat('tuna');
+		}).not.toThrow();
+		expect(mySandwich.meat).toEqual('organic tuna');
+		expect(theirSandwich.meat).toEqual('ham');
+
+		theirSandwich.updateMeat('bologna');
+		expect(mySandwich.meat).toEqual('organic tuna');
+		expect(theirSandwich.meat).toEqual('organic bologna');
+	});
 });

@@ -56,8 +56,8 @@ const decoratedFunctions: Map<
  * 	`fake`: A function to call in place of the function to be decorated.
  * 	`thisArg`: The value to be passed as the `this` parameter to the target
  * 		function(s) when the decorated function is called. Also applies to
- * 		`after`, `before`, and `fake`. Defaults to the `objOrFxn` argument
- * 		passed to `decorateFunction`.
+ * 		`after`, `before`, and `fake`. Defaults to `this` if decorating a
+ * 		prototype method or the `objOrFxn` argument pased to `decorateFunction`.
  * @returns {Function} The decorated function.
  */
 export default function decorateFunction(
@@ -116,7 +116,7 @@ export default function decorateFunction(
 				? config.callThrough
 				: true,
 			fake,
-			thisArg = obj
+			thisArg = this || obj
 		} = config;
 
 		// call `fake` function instead of original if defined
