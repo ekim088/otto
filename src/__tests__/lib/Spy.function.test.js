@@ -51,78 +51,7 @@ describe('lib/Spy.function', () => {
 		expect(spy.before).toHaveBeenCalledBefore(originalFunction);
 	});
 
-	// TODO: review placement of tests below
-
-	it('should maintain a log of calls to the spied function', () => {
-		mockContext.sum = (num1, num2) => num1 + num2;
-		spy = new Spy(mockContext, 'sum');
-		expect(mockContext.sum.calls).not.toBeDefined();
-		expect(mockContext._spy_).not.toBeDefined();
-
-		mockContext.sum(1, 1);
-		expect(mockContext.sum.calls.length).toEqual(1);
-		expect(mockContext._spy_.sum.calls.length).toEqual(1);
-		expect(mockContext.sum.calls[0]).toStrictEqual({
-			args: [1, 1],
-			return: 2
-		});
-		expect(mockContext._spy_.sum.calls[0]).toStrictEqual({
-			args: [1, 1],
-			return: 2
-		});
-
-		mockContext.sum(5, '6');
-		expect(mockContext.sum.calls.length).toEqual(2);
-		expect(mockContext._spy_.sum.calls.length).toEqual(2);
-		expect(mockContext.sum.calls[1]).toStrictEqual({
-			args: [5, '6'],
-			return: '56'
-		});
-		expect(mockContext._spy_.sum.calls[1]).toStrictEqual({
-			args: [5, '6'],
-			return: '56'
-		});
-	});
-
-	it('should remove the log of calls to the spied function on reset', () => {
-		mockContext.sum = (num1, num2) => num1 + num2;
-		spy = new Spy(mockContext, 'sum');
-		mockContext.sum();
-		expect(mockContext.sum.calls).toBeDefined();
-		expect(mockContext._spy_.sum).toBeDefined();
-
-		spy.reset();
-		expect(mockContext.sum.calls).not.toBeDefined();
-		expect(mockContext._spy_).not.toBeDefined();
-	});
-
-	it('should make copies of original arguments and returns in the call log', () => {
-		mockContext.sum = (num1, num2) => num1 + num2;
-		spy = new Spy(mockContext, 'sum');
-		const obj = { a: 1 };
-
-		mockContext.sum(1, obj);
-		expect(mockContext.sum.calls[0]).toStrictEqual({
-			args: [1, { a: 1 }],
-			return: '1[object Object]'
-		});
-
-		obj.a = 3;
-		expect(mockContext.sum.calls[0].args[1].a).toEqual(1);
-	});
-
-	it('should maintain custom props from the original function to the spied function', () => {
-		mockContext.someFunction = () => null;
-		mockContext.someFunction.testProp = 0;
-		mockContext.someFunction.testMethod = function() {
-			this.testProp += 1;
-		};
-		spy = new Spy(mockContext, 'someFunction');
-		expect(mockContext.someFunction).toHaveProperty('testProp');
-		expect(mockContext.someFunction).toHaveProperty('testMethod');
-	});
-
-	it('should spy on custom prop methods that may have been applied to the spied function', () => {
+	it('should spy on functions applied directly to the spied function as properties', () => {
 		mockContext.someFunction = () => null;
 		mockContext.someFunction.testProp = 0;
 		mockContext.someFunction.testMethod = function() {
@@ -140,7 +69,7 @@ describe('lib/Spy.function', () => {
 		expect(mockContext.someFunction.testProp).toEqual(1);
 	});
 
-	it('should spy on non-method custom props that have been applied to the spied function', () => {
+	it('should spy on non-method properties applied to the spied function', () => {
 		mockContext.someFunction = () => null;
 		mockContext.someFunction.testProp = 0;
 		spy = new Spy(mockContext, 'someFunction');
@@ -152,7 +81,7 @@ describe('lib/Spy.function', () => {
 		});
 	});
 
-	it('should not overwrite function props that are required for spying', () => {
+	it('should not overwrite properties on the function that are required for spying', () => {
 		let x = 0;
 		mockContext.someFunction = () => {
 			x += 1;
@@ -185,7 +114,7 @@ describe('lib/Spy.function', () => {
 		});
 	});
 
-	it('should reset spies on custom prop methods when resetting the originally spied method', () => {
+	it("should reset spies on a function's property methods when resetting the originally spied function", () => {
 		mockContext.someFunction = () => null;
 		mockContext.someFunction.testMethod1 = function() {};
 		mockContext.someFunction.testMethod2 = function() {};
@@ -200,7 +129,7 @@ describe('lib/Spy.function', () => {
 		expect(mockContext.someFunction.testMethod2).toBe(originalPropMethod2);
 	});
 
-	it('should reset spies on non-method custom props when resetting the originally spied method', () => {
+	it('should reset spies on non-method properties when resetting the originally spied function', () => {
 		mockContext.someFunction = () => null;
 		mockContext.someFunction.testProp = 0;
 		originalFunction = mockContext.someFunction;
@@ -225,23 +154,5 @@ describe('lib/Spy.function', () => {
 		expect(mockContext.toBeSpiedUpon).toBe(originalFunction);
 		expect(mockContext.anotherFunctionToSpyOn).toBe(originalAnotherFunction);
 		anotherSpy.reset();
-	});
-
-	it('should call a fake function instead of the original spied function if defined', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		spy.fake = jest.fn();
-		mockContext.toBeSpiedUpon();
-		expect(originalFunction).not.toHaveBeenCalled();
-		expect(spy.fake).toHaveBeenCalled();
-	});
-
-	it('should call before and after functions if fake is defined', () => {
-		spy = new Spy(mockContext, 'toBeSpiedUpon');
-		spy.before = jest.fn();
-		spy.after = jest.fn();
-		spy.fake = jest.fn();
-		mockContext.toBeSpiedUpon();
-		expect(spy.before).toHaveBeenCalledBefore(spy.fake);
-		expect(spy.after).toHaveBeenCalledAfter(spy.fake);
 	});
 });

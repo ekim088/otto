@@ -28,6 +28,9 @@ type DecoratedFunctionsEntry = {|
 /**
  * Map of decorated function to original function for use in resetting
  * decorators.
+ * NOTE: Be wary of this endlessly growing. Investigate ways to safely
+ * remove without losing the ability to locate the original function for a
+ * directly/indirectly decorated function.
  */
 const decoratedFunctions: Map<
 	DecoratedFunction,
@@ -263,9 +266,6 @@ export function revertDecoratedFunction(
 				);
 			}
 		}
-
-		// delete decorated function entry
-		decoratedFunctions.delete(decoratedFunction);
 	} else {
 		logger.info('could not find a record of decorated function to revert');
 	}
