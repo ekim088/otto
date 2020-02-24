@@ -18,6 +18,7 @@ describe('utils/decorateFunction', () => {
 	});
 
 	beforeEach(() => {
+		decoratedFunction = undefined;
 		mockContext = {
 			reliesOnThis() {
 				this.toBeDecorated();
@@ -26,11 +27,6 @@ describe('utils/decorateFunction', () => {
 			toBeCalledByBeforeAfter: jest.fn()
 		};
 		originalFunction = mockContext.toBeDecorated;
-	});
-
-	afterEach(() => {
-		if (decoratedFunction) revertDecoratedFunction(decoratedFunction);
-		decoratedFunction = undefined;
 	});
 
 	afterAll(() => {

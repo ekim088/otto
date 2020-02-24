@@ -1,6 +1,10 @@
+/* eslint-disable no-unused-expressions */
 import decorateFunction, {
 	revertDecoratedFunction
 } from '../../../lib/utils/decorateFunction';
+import decorateProperty, {
+	revertDecoratedProperty
+} from '../../../lib/utils/decorateProperty';
 import logger from '../../../lib/utils/logger';
 
 describe('utils/spyLogger', () => {
@@ -15,7 +19,17 @@ describe('utils/spyLogger', () => {
 	});
 
 	beforeEach(() => {
-		mockContext = {};
+		mockContext = {
+			log: [],
+			propToDecorate: 'base',
+			set propWithExistingSetter(val) {
+				this.log.push(val);
+			},
+			get propWithExistingGetter() {
+				return this.someProp;
+			},
+			someProp: 'some value'
+		};
 	});
 
 	afterAll(() => {
@@ -26,7 +40,7 @@ describe('utils/spyLogger', () => {
 		});
 	});
 
-	it('should maintain a log of calls to decorated functions', () => {
+	it('should maintain a log of calls to a decorated function', () => {
 		mockContext.sum = (num1, num2) => num1 + num2;
 		decorateFunction(mockContext, 'sum');
 		expect(mockContext.sum.calls).not.toBeDefined();
@@ -61,12 +75,12 @@ describe('utils/spyLogger', () => {
 		mockContext.sum = (num1, num2) => num1 + num2;
 		decorateFunction(mockContext, 'sum');
 		mockContext.sum();
-		expect(mockContext.sum.calls).toBeDefined();
-		expect(mockContext._spy_.sum).toBeDefined();
+		expect(mockContext.sum).toHaveProperty('calls');
+		expect(mockContext._spy_).toHaveProperty('sum');
 
 		revertDecoratedFunction(mockContext.sum);
-		expect(mockContext.sum.calls).not.toBeDefined();
-		expect(mockContext._spy_).not.toBeDefined();
+		expect(mockContext.sum).not.toHaveProperty('calls');
+		expect(mockContext).not.toHaveProperty('_spy_');
 	});
 
 	it('should apply clones of function arguments and returns to the call log', () => {
@@ -82,5 +96,54 @@ describe('utils/spyLogger', () => {
 
 		obj.a = 3;
 		expect(mockContext.sum.calls[0].args[1].a).toEqual(1);
+	});
+
+	it('should maintain a log of writes to a decorated property', () => {
+		decorateProperty(mockContext, 'propToDecorate');
+		mockContext.propToDecorate = 'new1';
+		mockContext.propToDecorate = 'new2';
+		mockContext.propToDecorate = 'new3';
+		expect(mockContext._spy_.propToDecorate.writes).toEqual([
+			'new1',
+			'new2',
+			'new3'
+		]);
+
+		mockContext._spy_ = 'whoops';
+		mockContext.propToDecorate = 'new4';
+		expect(mockContext._spy_.propToDecorate.writes).toEqual([
+			'new1',
+			'new2',
+			'new3',
+			'new4'
+		]);
+
+		decorateProperty(mockContext, 'propWithExistingSetter');
+		mockContext.propWithExistingSetter = 'test1';
+		expect(mockContext._spy_.propWithExistingSetter.writes).toEqual(['test1']);
+	});
+
+	it('should maintain a log of reads to a decorated property', () => {
+		decorateProperty(mockContext, 'propToDecorate');
+		mockContext.propToDecorate;
+		expect(mockContext._spy_.propToDecorate.reads).toEqual(1);
+
+		mockContext.propToDecorate;
+		expect(mockContext._spy_.propToDecorate.reads).toEqual(2);
+
+		mockContext._spy_ = 'whoops';
+		mockContext.propToDecorate;
+		expect(mockContext._spy_.propToDecorate.reads).toEqual(3);
+
+		decorateProperty(mockContext, 'propWithExistingGetter');
+		mockContext.propWithExistingGetter;
+		expect(mockContext._spy_.propWithExistingGetter.reads).toEqual(1);
+	});
+
+	it('should remove the log of updates once a decorated property has been reverted', () => {
+		decorateProperty(mockContext, 'propToDecorate');
+		mockContext.propToSpyOn = 'new1';
+		revertDecoratedProperty(mockContext, 'propToDecorate');
+		expect(mockContext).not.toHaveProperty('_spy_');
 	});
 });
