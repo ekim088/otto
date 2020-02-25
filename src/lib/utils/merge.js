@@ -1,18 +1,18 @@
 // @flow
 /**
- * Merges the contents of 2 objects into the first object. If the second
- * argument is a primitive type, it will overwrite the first argument.
- * @param {*} baseObj The base object.
- * @param {Array<*>} args Any number of additional objects to merge.
+ * Merges the contents of objects into the target object. Merging a primitive
+ * type or function into the target will overwrite the target argument.
+ * @param {*} target The target object.
+ * @param {Array<*>} sources Any number of additional objects to merge.
  * @returns {*} The merged object.
  */
 export default function merge<T: mixed>(
-	baseObj: any,
-	...args: Array<T>
+	target: any,
+	...sources: Array<T>
 ): $Shape<T> {
-	let mergedObj = baseObj;
+	let mergedObj = target;
 
-	args.forEach(objToMerge => {
+	sources.forEach(objToMerge => {
 		if (typeof objToMerge === 'object' && objToMerge !== null) {
 			if (typeof mergedObj !== 'object') {
 				mergedObj = {};

@@ -1,6 +1,7 @@
 // @flow
 import clone from './clone';
 import logger from './logger';
+import mirrorProperties from './mirrorProperties';
 import spyLogger, { deleteSpyLog } from './spyLogger';
 import type { CallEntry, SpyLog } from './spyLogger';
 
@@ -215,9 +216,10 @@ export default function decorateFunction(
 	const decoratedFunctionsEntry: DecoratedFunctionsEntry = { originalFunction };
 
 	// duplicate custom properties on original function
-	Object.keys(originalFunction).forEach((prop: string): void => {
-		decoratedFunction[prop] = originalFunction[prop];
-	});
+	mirrorProperties(
+		((decoratedFunction: { ... }): { [prop: string]: mixed }),
+		((originalFunction: { ... }): { [prop: string]: mixed })
+	);
 
 	// swap original with decorated function if method reference supplied
 	if (obj && functionName) {
@@ -270,9 +272,10 @@ export function revertDecoratedFunction(
 		 * Reapply custom function properties from decorated to original
 		 * function to retain updates to values.
 		 */
-		Object.keys(decoratedFunction).forEach((prop: string) => {
-			originalFunction[prop] = decoratedFunction[prop];
-		});
+		mirrorProperties(
+			((originalFunction: { ... }): { [prop: string]: mixed }),
+			((decoratedFunction: { ... }): { [prop: string]: mixed })
+		);
 
 		if (obj && functionName) {
 			if (obj[functionName] === decoratedFunction) {
