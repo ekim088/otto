@@ -95,6 +95,14 @@ export default function decorateFunction(
 		);
 	}
 
+	// check if function is already decorated before attempting to decorate
+	if (isDecoratedFunction(originalFunction)) {
+		logger.info(
+			'returning already decorated function, revert the decorated function to redecorate'
+		);
+		return (originalFunction: DecoratedFunction);
+	}
+
 	/**
 	 * Support decoration configuration directly on function if not passed
 	 * as an argument.

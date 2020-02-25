@@ -331,4 +331,15 @@ describe('utils/decorateFunction', () => {
 		);
 		expect(after).toHaveBeenCalledBefore(mockContext.calledAfterAsync);
 	});
+
+	it('should not decorate an already decorated function', () => {
+		decoratedFunction = decorateFunction(mockContext, 'toBeDecorated');
+		decorateFunction(mockContext, 'toBeDecorated');
+		expect(mockContext.toBeDecorated).toBe(decoratedFunction);
+
+		revertDecoratedFunction(decoratedFunction);
+		const decoratedFunction2 = decorateFunction(mockContext.toBeDecorated);
+		const decoratedFunction3 = decorateFunction(decoratedFunction2);
+		expect(decoratedFunction2).toBe(decoratedFunction3);
+	});
 });
