@@ -1,5 +1,5 @@
 // @flow
-import clone from './clone';
+import { clone } from './object';
 import logger from './logger';
 
 export type CallEntry = {|

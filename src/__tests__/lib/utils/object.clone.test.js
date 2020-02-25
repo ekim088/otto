@@ -1,6 +1,6 @@
-import clone from '../../../lib/utils/clone';
+import { clone } from '../../../lib/utils/object';
 
-describe('utils/clone', () => {
+describe('utils/object.clone', () => {
 	it('should deep copy an object', () => {
 		const original = {
 			a: 1,

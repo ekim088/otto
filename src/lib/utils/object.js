@@ -24,10 +24,7 @@ export function clone<T>(orig: T): T {
  * @param {Array<*>} sources Any number of additional objects to merge.
  * @returns {*} The merged object.
  */
-export default function merge<T: mixed>(
-	target: any,
-	...sources: Array<T>
-): $Shape<T> {
+export function merge<T: mixed>(target: any, ...sources: Array<T>): $Shape<T> {
 	let mergedObj = target;
 
 	sources.forEach(objToMerge => {
@@ -52,4 +49,44 @@ export default function merge<T: mixed>(
 	});
 
 	return mergedObj;
+}
+
+/**
+ * Mirrors properties of objects onto the target object.
+ * @param {*} target The target object.
+ * @param {Array<*>} sources Any number of additional objects to merge.
+ * @returns {*} The mirrored object.
+ */
+export function mirrorProperties<T: { [prop: string]: mixed }>(
+	target: T,
+	...sources: Array<T>
+): $Shape<T> {
+	const targetObj = target;
+
+	sources.forEach(sourceObj => {
+		Object.keys(sourceObj).forEach((prop: string) => {
+			targetObj[prop] = sourceObj[prop];
+		});
+	});
+
+	return targetObj;
+}
+
+/**
+ * Safely navigates to a nested object property.
+ * @param {*} origin An object that acts as the starting point for
+	navigation.
+ * @param {string} path The path to the nested object property not including
+ 	the originating object.
+ */
+export function traverse(origin: { ... }, path: string): mixed {
+	const pathComponents: Array<string> =
+		typeof path === 'string' ? path.split('.') : [];
+	let val: mixed = origin;
+
+	while (val && pathComponents.length > 0) {
+		val = ((val: any): { ... })[pathComponents.shift()];
+	}
+
+	return val;
 }

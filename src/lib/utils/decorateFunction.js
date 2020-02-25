@@ -1,7 +1,6 @@
 // @flow
-import clone from './clone';
+import { clone, mirrorProperties } from './object';
 import logger from './logger';
-import mirrorProperties from './mirrorProperties';
 import spyLogger, { deleteSpyLog } from './spyLogger';
 import type { CallEntry, SpyLog } from './spyLogger';
 

@@ -1,6 +1,6 @@
-import merge from '../../../lib/utils/merge';
+import { merge } from '../../../lib/utils/object';
 
-describe('utils/merge', () => {
+describe('utils/object.merge', () => {
 	it('should merge two objects together', () => {
 		const obj1 = {
 			a: 1,

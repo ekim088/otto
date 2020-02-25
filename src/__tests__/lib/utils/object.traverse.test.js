@@ -1,6 +1,6 @@
-import traverse from '../../../lib/utils/traverse';
+import { traverse } from '../../../lib/utils/object';
 
-describe('utils/traverse', () => {
+describe('utils/object.traverse', () => {
 	const testObject = {
 		a: {
 			b: {

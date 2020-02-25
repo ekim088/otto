@@ -1,6 +1,6 @@
-import mirrorProperties from '../../../lib/utils/mirrorProperties';
+import { mirrorProperties } from '../../../lib/utils/object';
 
-describe('utils/mirrorProperties', () => {
+describe('utils/object.mirrorProperties', () => {
 	it('should make a shallow copy of properties from an object onto the target object', () => {
 		const target = {
 			a: 1,
