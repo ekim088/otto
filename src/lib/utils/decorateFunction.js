@@ -153,43 +153,54 @@ export default function decorateFunction(
 
 			try {
 				returnVal = baseFunction.apply(thisArg, args);
-				logReturn = clone(returnVal);
 			} catch (error) {
 				logger.error(
 					`an error occurred while calling the decorated function: ${error.message}`
 				);
 				logReturn = `Error: ${error.message}`;
 			}
+		}
 
-			if (typeof after === 'function') {
+		/**
+		 * Performs all tasks meant to be completed after completion of base
+		 * function call.
+		 */
+		const onBaseFunctionCallComplete = (returnFromBase: mixed): any => {
+			logReturn = logReturn || clone(returnFromBase);
+
+			if (callThrough && typeof after === 'function') {
 				try {
 					/**
-					 * Call `after` with a copy of decorated function's return
-					 * value.
+					 * Call `after` with a copy of decorated function's
+					 * return value.
 					 */
-					after.call(thisArg, clone(returnVal));
+					after.call(thisArg, clone(returnFromBase));
 				} catch (error) {
 					logger.error(
 						`an error occurred while calling after: ${error.message}`
 					);
 				}
 			}
-		}
 
-		// log function call and return result from original function
-		spyLogger(
-			({
-				obj,
-				propName: functionName,
-				update: {
-					functionCall: true,
-					args: logArgs,
-					calls,
-					return: logReturn
-				}
-			}: SpyLog)
-		);
-		return returnVal;
+			// log function call and return result from original function
+			spyLogger(
+				({
+					obj,
+					propName: functionName,
+					update: {
+						functionCall: true,
+						args: logArgs,
+						calls,
+						return: logReturn
+					}
+				}: SpyLog)
+			);
+			return returnFromBase;
+		};
+
+		return returnVal instanceof Promise
+			? returnVal.then(resolvedVal => onBaseFunctionCallComplete(resolvedVal))
+			: onBaseFunctionCallComplete(returnVal);
 	};
 
 	// storage object in decorated functions map

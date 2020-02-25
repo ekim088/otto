@@ -5,6 +5,8 @@ import decorateFunction, {
 import logger from '../../../lib/utils/logger';
 
 describe('utils/decorateFunction', () => {
+	const letsWait = () =>
+		new Promise(resolve => setTimeout(() => resolve('success'), 100));
 	let mockContext;
 	let originalFunction;
 	let decoratedFunction;
@@ -277,5 +279,56 @@ describe('utils/decorateFunction', () => {
 		theirSandwich.updateMeat('bologna');
 		expect(mySandwich.meat).toEqual('organic tuna');
 		expect(theirSandwich.meat).toEqual('organic bologna');
+	});
+
+	it('should decorate an asynchronous function', async () => {
+		mockContext.calledAfterAsync = jest.fn(() => {});
+		mockContext.waitForMe = () => letsWait();
+		mockContext.asyncTest = async function() {
+			const ret = await this.waitForMe();
+			this.calledAfterAsync(ret);
+		};
+		decorateFunction(mockContext, 'waitForMe');
+		await mockContext.asyncTest();
+		expect(mockContext.calledAfterAsync).toHaveBeenCalledWith('success');
+		expect(mockContext.waitForMe.calls[0]).toStrictEqual({
+			args: [],
+			return: 'success'
+		});
+	});
+
+	it('should call an after function after the asynchronous function has resolved when decorating an asynchronous function', async () => {
+		const after = jest.fn(() => {});
+		mockContext.calledAfterAsync = jest.fn(() => {});
+		mockContext.waitForMe = () => letsWait();
+		mockContext.asyncTest = async function() {
+			const ret = await this.waitForMe();
+			this.calledAfterAsync(ret);
+		};
+		decorateFunction(mockContext, 'waitForMe', { after });
+		await mockContext.asyncTest();
+		expect(after).toHaveBeenCalledWith('success');
+		expect(mockContext.calledAfterAsync).toHaveBeenCalledWith('success');
+		expect(after).toHaveBeenCalledBefore(mockContext.calledAfterAsync);
+	});
+
+	it('should successfully call decorated function if replacing a decorated async function with a synchronous fake function', async () => {
+		const after = jest.fn(() => {});
+		mockContext.calledAfterAsync = jest.fn(() => {});
+		mockContext.waitForMe = () => letsWait();
+		mockContext.asyncTest = async function() {
+			const ret = await this.waitForMe();
+			this.calledAfterAsync(ret);
+		};
+		decorateFunction(mockContext, 'waitForMe', {
+			after,
+			fake: () => 'synchronous return'
+		});
+		await mockContext.asyncTest();
+		expect(after).toHaveBeenCalledWith('synchronous return');
+		expect(mockContext.calledAfterAsync).toHaveBeenCalledWith(
+			'synchronous return'
+		);
+		expect(after).toHaveBeenCalledBefore(mockContext.calledAfterAsync);
 	});
 });

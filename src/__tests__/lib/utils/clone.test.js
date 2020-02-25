@@ -11,9 +11,10 @@ describe('utils/clone', () => {
 		};
 		const clonedObj = clone(original);
 		expect(clonedObj).toStrictEqual(original);
+		expect(clonedObj.b).not.toBe(original.b);
 
-		clonedObj.a = 2;
-		expect(original.a).toEqual(1);
+		clonedObj.b.c = 100;
+		expect(original.b.c).toEqual(3);
 	});
 
 	it('should deep copy an array', () => {
