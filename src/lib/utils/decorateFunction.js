@@ -192,15 +192,17 @@ export default function decorateFunction(
 			}
 
 			// log function call and return result from original function
+			calls.push({
+				args: logArgs,
+				return: logReturn
+			});
 			spyLogger(
 				({
 					obj,
 					propName: functionName,
 					update: {
 						functionCall: true,
-						args: logArgs,
-						calls,
-						return: logReturn
+						calls
 					}
 				}: SpyLog)
 			);

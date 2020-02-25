@@ -1,4 +1,5 @@
 // @flow
+import clone from './clone';
 import logger from './logger';
 
 export type CallEntry = {|
@@ -8,9 +9,7 @@ export type CallEntry = {|
 
 type FunctionCallLog = {|
 	functionCall: true,
-	args: Array<mixed>,
-	calls: Array<CallEntry>,
-	return: mixed
+	calls: Array<CallEntry>
 |};
 
 type PropReadLog = {|
@@ -20,8 +19,6 @@ type PropReadLog = {|
 
 type PropWriteLog = {|
 	propWrite: true,
-	newValue: mixed,
-	originalValue: mixed,
 	writes: Array<mixed>
 |};
 
@@ -58,22 +55,12 @@ export default function spyLogger(config: SpyLog): void {
 			}`
 		);
 	} else if (update.propWrite && propName) {
-		const { newValue, originalValue, writes } = update;
-		writes.push(newValue);
-		obj._spy_[propName].writes = writes;
-		logger.info(
-			`value of ${propName} updated from ${String(originalValue)} to ${String(
-				newValue
-			)}`
-		);
+		const { writes } = update;
+		const newValue = writes[writes.length - 1];
+		obj._spy_[propName].writes = clone(writes);
+		logger.info(`value of ${propName} updated to ${String(newValue)}`);
 	} else if (update.functionCall) {
-		const { args, calls, return: returnVal } = update;
-		const entry: CallEntry = {
-			args,
-			return: returnVal
-		};
-
-		calls.push(entry);
+		const calls = clone(update.calls);
 
 		if (!propName) {
 			obj.calls = calls;

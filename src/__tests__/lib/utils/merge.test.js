@@ -94,14 +94,22 @@ describe('utils/merge', () => {
 	});
 
 	it('should merge an array into an object', () => {
-		const arr = [1, 2, 3];
-		const merged = merge({ a: 1 }, arr);
+		const target = {
+			a: 1,
+			b: 2
+		};
+		const source = {
+			b: [{ a: 1, b: 2 }],
+			c: 3
+		};
+		const merged = merge(target, source);
 		const expectedMerge = {
 			a: 1,
-			'0': 1,
-			'1': 2,
-			'2': 3
+			b: [{ a: 1, b: 2 }],
+			c: 3
 		};
 		expect(merged).toStrictEqual(expectedMerge);
+		expect(merged.b).not.toBe(source.b);
+		expect(merged.b[0]).not.toBe(source.b[0]);
 	});
 });

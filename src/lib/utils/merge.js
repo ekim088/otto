@@ -1,4 +1,22 @@
 // @flow
+
+/**
+ * Performs a deep copy of the original input.
+ * @param {*} orig The original input.
+ * @returns {*} A clone of the original input.
+ */
+export function clone<T>(orig: T): T {
+	let cloned = orig;
+
+	if (Array.isArray(orig)) {
+		cloned = orig.map(el => clone(el));
+	} else if (typeof orig === 'object' && orig !== null) {
+		cloned = merge({}, orig);
+	}
+
+	return cloned;
+}
+
 /**
  * Merges the contents of objects into the target object. Merging a primitive
  * type or function into the target will overwrite the target argument.
@@ -13,7 +31,11 @@ export default function merge<T: mixed>(
 	let mergedObj = target;
 
 	sources.forEach(objToMerge => {
-		if (typeof objToMerge === 'object' && objToMerge !== null) {
+		if (
+			typeof objToMerge === 'object' &&
+			objToMerge !== null &&
+			!Array.isArray(objToMerge)
+		) {
 			if (typeof mergedObj !== 'object') {
 				mergedObj = {};
 			}
@@ -25,7 +47,7 @@ export default function merge<T: mixed>(
 				);
 			});
 		} else {
-			mergedObj = objToMerge;
+			mergedObj = Array.isArray(objToMerge) ? clone(objToMerge) : objToMerge;
 		}
 	});
 

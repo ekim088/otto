@@ -28,7 +28,10 @@ describe('utils/spyLogger', () => {
 			get propWithExistingGetter() {
 				return this.someProp;
 			},
-			someProp: 'some value'
+			someProp: 'some value',
+			sum(num1, num2) {
+				return num1 + num2;
+			}
 		};
 	});
 
@@ -41,7 +44,6 @@ describe('utils/spyLogger', () => {
 	});
 
 	it('should maintain a log of calls to a decorated function', () => {
-		mockContext.sum = (num1, num2) => num1 + num2;
 		decorateFunction(mockContext, 'sum');
 		expect(mockContext.sum.calls).not.toBeDefined();
 		expect(mockContext._spy_).not.toBeDefined();
@@ -72,7 +74,6 @@ describe('utils/spyLogger', () => {
 	});
 
 	it('should remove the log of calls once a decorated function has been reverted', () => {
-		mockContext.sum = (num1, num2) => num1 + num2;
 		decorateFunction(mockContext, 'sum');
 		mockContext.sum();
 		expect(mockContext.sum).toHaveProperty('calls');
@@ -83,8 +84,15 @@ describe('utils/spyLogger', () => {
 		expect(mockContext).not.toHaveProperty('_spy_');
 	});
 
+	it('should prevent the log of function calls from being manipulated', () => {
+		decorateFunction(mockContext, 'sum');
+		mockContext.sum(1, 2);
+		mockContext.sum.calls[0].args = [9, 9];
+		mockContext.sum(1, 2);
+		expect(mockContext.sum.calls[0].args).toStrictEqual([1, 2]);
+	});
+
 	it('should apply clones of function arguments and returns to the call log', () => {
-		mockContext.sum = (num1, num2) => num1 + num2;
 		decorateFunction(mockContext, 'sum');
 		const obj = { a: 1 };
 
@@ -145,5 +153,14 @@ describe('utils/spyLogger', () => {
 		mockContext.propToSpyOn = 'new1';
 		revertDecoratedProperty(mockContext, 'propToDecorate');
 		expect(mockContext).not.toHaveProperty('_spy_');
+	});
+
+	it('should prevent the log of writes from being manipulated', () => {
+		decorateProperty(mockContext, 'propToDecorate');
+		mockContext.propToDecorate = 'new1';
+		mockContext.propToDecorate = 'new2';
+		mockContext._spy_.propToDecorate.writes[1] = 'incorrect';
+		mockContext.propToDecorate = 'new3';
+		expect(mockContext._spy_.propToDecorate.writes).not.toContain('incorrect');
 	});
 });

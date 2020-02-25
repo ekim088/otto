@@ -58,15 +58,13 @@ export default function decorateProperty(obj: { ... }, propName: string): void {
 				return propValue;
 			},
 			set(newValue: mixed) {
-				const originalValue: mixed = propValue;
+				writes.push(newValue);
 				spyLogger(
 					({
 						obj,
 						propName,
 						update: {
 							propWrite: true,
-							originalValue,
-							newValue,
 							writes
 						}
 					}: SpyLog)
@@ -106,14 +104,13 @@ export default function decorateProperty(obj: { ... }, propName: string): void {
 				descriptor.set,
 				({
 					before(newValue) {
+						writes.push(newValue);
 						spyLogger(
 							({
 								obj,
 								propName,
 								update: {
 									propWrite: true,
-									originalValue: obj[propName],
-									newValue,
 									writes
 								}
 							}: SpyLog)
