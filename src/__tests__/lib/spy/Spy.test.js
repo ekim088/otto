@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-expressions */
-import logger from '../../lib/utils/logger';
-import Spy from '../../lib/Spy';
+import logger from '../../../lib/utils/logger';
+import Spy from '../../../lib/spy/Spy';
 
 describe('lib/Spy', () => {
 	let mockContext;

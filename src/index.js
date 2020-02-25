@@ -1,4 +1,4 @@
-import spyOn from './lib/spyOn';
+import spyOn from './lib/spy/spyOn';
 
 const otto = { spyOn };
 
