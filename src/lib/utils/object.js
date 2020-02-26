@@ -1,17 +1,17 @@
 // @flow
 
 /**
- * Performs a deep copy of the original input.
- * @param {*} orig The original input.
- * @returns {*} A clone of the original input.
+ * Creates a deep copy clone of the source object.
+ * @param {*} source The source to clone.
+ * @returns {*} A clone of the source object.
  */
-export function clone<T>(orig: T): T {
-	let cloned = orig;
+export function clone<T>(source: T): T {
+	let cloned = source;
 
-	if (Array.isArray(orig)) {
-		cloned = orig.map(el => clone(el));
-	} else if (typeof orig === 'object' && orig !== null) {
-		cloned = merge({}, orig);
+	if (Array.isArray(source)) {
+		cloned = source.map(el => clone(el));
+	} else if (typeof source === 'object' && source !== null) {
+		cloned = merge({}, source);
 	}
 
 	return cloned;
@@ -27,24 +27,24 @@ export function clone<T>(orig: T): T {
 export function merge<T: mixed>(target: any, ...sources: Array<T>): $Shape<T> {
 	let mergedObj = target;
 
-	sources.forEach(objToMerge => {
+	sources.forEach(source => {
 		if (
-			typeof objToMerge === 'object' &&
-			objToMerge !== null &&
-			!Array.isArray(objToMerge)
+			typeof source === 'object' &&
+			source !== null &&
+			!Array.isArray(source)
 		) {
 			if (typeof mergedObj !== 'object') {
 				mergedObj = {};
 			}
 
-			Object.keys(objToMerge).forEach((key: string): void => {
+			Object.keys(source).forEach((key: string): void => {
 				((mergedObj: any): { ... })[key] = merge(
 					((mergedObj: any): { ... })[key],
-					objToMerge[key]
+					source[key]
 				);
 			});
 		} else {
-			mergedObj = Array.isArray(objToMerge) ? clone(objToMerge) : objToMerge;
+			mergedObj = clone(source);
 		}
 	});
 
@@ -74,15 +74,15 @@ export function mirrorProperties<T: { [prop: string]: mixed }>(
 
 /**
  * Safely navigates to a nested object property.
- * @param {*} origin An object that acts as the starting point for
+ * @param {*} source An object that acts as the starting point for
 	navigation.
  * @param {string} path The path to the nested object property not including
  	the originating object.
  */
-export function traverse(origin: { ... }, path: string): mixed {
+export function traverse(source: { ... }, path: string): mixed {
 	const pathComponents: Array<string> =
 		typeof path === 'string' ? path.split('.') : [];
-	let val: mixed = origin;
+	let val: mixed = source;
 
 	while (val && pathComponents.length > 0) {
 		val = ((val: any): { ... })[pathComponents.shift()];
