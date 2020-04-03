@@ -40,7 +40,7 @@ describe('lib/SpyOnModule', () => {
 		expect(chainable.and).toBe(chainable);
 	});
 
-	it('should support calling fakes on spied functions', () => {
+	it('should support calling a fake function in place of the spied function', () => {
 		const fakeFunction = jest.fn();
 		const originalFunction = mockContext.fxnToSpyOn;
 
@@ -50,9 +50,50 @@ describe('lib/SpyOnModule', () => {
 		expect(fakeFunction).toHaveBeenCalled();
 	});
 
-	it('should fail gracefully when calling callFake with invalid arguments', () => {
+	it('should return itself on callFake', () => {
+		const chainable = spyOn(mockContext, 'fxnToSpyOn');
+		expect(chainable.and.callFake(() => undefined)).toBe(chainable);
+	});
+
+	it('should support calling a function before calling the spied function', () => {
+		const beforeFxn = jest.fn();
+		const originalFunction = mockContext.fxnToSpyOn;
+
+		spyOn(mockContext, 'fxnToSpyOn').and.callBefore(beforeFxn);
+		mockContext.fxnToSpyOn();
+		expect(beforeFxn).toHaveBeenCalledBefore(originalFunction);
+	});
+
+	it('should return itself on callBefore', () => {
+		const chainable = spyOn(mockContext, 'fxnToSpyOn');
+		expect(chainable.and.callBefore(() => undefined)).toBe(chainable);
+	});
+
+	it('should support calling a function after calling the spied function', () => {
+		const afterFxn = jest.fn();
+		const originalFunction = mockContext.fxnToSpyOn;
+
+		spyOn(mockContext, 'fxnToSpyOn').and.callAfter(afterFxn);
+		mockContext.fxnToSpyOn();
+		expect(afterFxn).toHaveBeenCalledAfter(originalFunction);
+	});
+
+	it('should return itself on callAfter', () => {
+		const chainable = spyOn(mockContext, 'fxnToSpyOn');
+		expect(chainable.and.callAfter(() => undefined)).toBe(chainable);
+	});
+
+	it('should fail gracefully when calling module methods with invalid arguments', () => {
 		expect(() => {
 			spyOn(mockContext, 'fxnToSpyOn').and.callFake('invalid');
+		}).not.toThrow();
+
+		expect(() => {
+			spyOn(mockContext, 'fxnToSpyOn').and.callBefore('invalid');
+		}).not.toThrow();
+
+		expect(() => {
+			spyOn(mockContext, 'fxnToSpyOn').and.callAfter('invalid');
 		}).not.toThrow();
 	});
 });
