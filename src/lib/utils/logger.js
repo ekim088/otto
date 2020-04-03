@@ -7,6 +7,7 @@
 const logger = {
 	error() {},
 	info() {},
+	warn() {},
 	transports: [
 		{
 			silent: true
