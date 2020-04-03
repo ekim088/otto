@@ -35,7 +35,7 @@ export default class SpyOnModule {
 	 */
 	callFake(fakeFxn: (...args: Array<any>) => mixed): SpyOnModule {
 		if (this.propName && typeof this.obj[this.propName] === 'function') {
-			this.spies.forEach(spy => {
+			this.spies.forEach((spy: Spy): void => {
 				const spyToUpdate = spy;
 				spyToUpdate.fake = fakeFxn;
 			});
