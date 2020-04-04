@@ -18,6 +18,41 @@ export function clone<T>(source: T): T {
 }
 
 /**
+ * Iterates over source object and calls sets value of property to result of
+ * calling a handler function on each property value. The handler function will
+ * be called with the value of the current property. An optional condition
+ * function can be passed to test the property value against to determine
+ * whether to call the handler function on that property.
+ * @param {Object} source The object to iterate over.
+ * @param {Function} handler The function to call on each property value. The
+ * 	value of the property will be updated if the handler function returns a
+ * 	result.
+ * @param {Function} [condition] An optional function to call before calling
+ * 	the handler function, where truthy results will initiate a call to the
+ * 	handler.
+ * @returns {Object} The updated source object.
+ */
+export function iterateAndCall(
+	source: { ... },
+	handler: (...args: Array<any>) => ?mixed,
+	condition?: (...args: Array<any>) => boolean | mixed
+) {
+	const src = source;
+
+	Object.keys(src).forEach(key => {
+		if (typeof condition !== 'function' || condition(src, key)) {
+			const returnVal = handler(src, key);
+
+			if (typeof returnVal !== 'undefined') {
+				src[key] = returnVal;
+			}
+		}
+	});
+
+	return src;
+}
+
+/**
  * Merges the contents of objects into the target object. Merging a primitive
  * type or function into the target will overwrite the target argument.
  * @param {*} target The target object.
