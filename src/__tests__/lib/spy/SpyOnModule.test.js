@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 import logger from '../../../lib/utils/logger';
 import SpyOnModule from '../../../lib/spy/SpyOnModule';
-import spyOn from '../../../lib/spy/spyOn';
+import spyOn, { resetAllSpies } from '../../../lib/spy/spyOn';
 
 describe('lib/SpyOnModule', () => {
 	let mockContext;
@@ -24,6 +24,8 @@ describe('lib/SpyOnModule', () => {
 	});
 
 	afterEach(() => {
+		resetAllSpies();
+
 		// re-enable logging
 		logger.transports.forEach(t => {
 			const transport = t;

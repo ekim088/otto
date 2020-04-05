@@ -35,7 +35,7 @@ export default class SpyOnModule {
 	 * @returns {SpyOnModule} The current module instance.
 	 */
 	callAfter(afterFxn: (?mixed) => void): SpyOnModule {
-		if (this.propName && typeof this.obj[this.propName] === 'function') {
+		if (isMethod(this.obj, this.propName)) {
 			this.spies.forEach((spy: Spy): void => {
 				const spyToUpdate = spy;
 				spyToUpdate.after = afterFxn;
@@ -55,7 +55,7 @@ export default class SpyOnModule {
 	 * @returns {SpyOnModule} The current module instance.
 	 */
 	callBefore(beforeFxn: ?(...args: Array<any>) => void): SpyOnModule {
-		if (this.propName && typeof this.obj[this.propName] === 'function') {
+		if (isMethod(this.obj, this.propName)) {
 			this.spies.forEach((spy: Spy): void => {
 				const spyToUpdate = spy;
 				spyToUpdate.before = beforeFxn;
@@ -74,7 +74,7 @@ export default class SpyOnModule {
 	 * @returns {SpyOnModule} The current module instance.
 	 */
 	callFake(fakeFxn: (...args: Array<any>) => mixed): SpyOnModule {
-		if (this.propName && typeof this.obj[this.propName] === 'function') {
+		if (isMethod(this.obj, this.propName)) {
 			this.spies.forEach((spy: Spy): void => {
 				const spyToUpdate = spy;
 				spyToUpdate.fake = fakeFxn;
@@ -85,4 +85,19 @@ export default class SpyOnModule {
 
 		return this;
 	}
+}
+
+/**
+ * Checks whether the object property is a function.
+ * @param {Object} obj The object containing the property to test.
+ * @param {string} propName The name of the property to test.
+ * @returns {boolean} Returns `true` if the object property is a function.
+ */
+function isMethod(obj: { ... }, propName: ?string): boolean {
+	return (
+		typeof obj === 'object' &&
+		obj !== null &&
+		typeof propName === 'string' &&
+		typeof obj[propName] === 'function'
+	);
 }
