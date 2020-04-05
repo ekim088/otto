@@ -14,7 +14,7 @@
 		"precommit": "lint-staged",
 		"test": "jest src --passWithNoTests",
 		"test:coverage": "jest src --passWithNoTests --coverage",
-		"test:watch": "jest --watchAll --notify",
+		"test:watch": "jest --watch --notify",
 		"version": "auto-changelog -p && git add CHANGELOG.md"
 	},
 	"repository": {

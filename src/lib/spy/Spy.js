@@ -51,6 +51,7 @@ function decorateFunctionForSpy(obj: { ... }, functionName: string): void {
 	this.reset = () => {
 		additionalSpies.forEach((spy: Spy): void => spy.reset());
 		revertDecoratedFunction(decoratedFunction);
+		this.active = false;
 	};
 }
 
@@ -63,11 +64,16 @@ function decoratePropertyForSpy(obj: { ... }, propName: string): void {
 	decorateProperty(obj, propName);
 
 	// initialize reset method for property spies
-	this.reset = () => revertDecoratedProperty(obj, propName);
+	this.reset = () => {
+		revertDecoratedProperty(obj, propName);
+		this.active = false;
+	};
 }
 
 export default class Spy {
 	// flow annotations
+	active: boolean;
+
 	after: (?mixed) => void;
 
 	before: ?(...args: Array<any>) => void;
@@ -90,8 +96,11 @@ export default class Spy {
 		}
 
 		// initiate spying
+		this.active = false;
 		this.callThrough = true;
-		this.reset = () => undefined;
+		this.reset = () => {
+			this.active = false;
+		};
 		this.initiate(obj, propName);
 
 		// add Spy to instantiated list
@@ -110,6 +119,7 @@ export default class Spy {
 				? decorateFunctionForSpy
 				: decoratePropertyForSpy;
 		decorator.call(this, obj, propName);
+		this.active = true;
 	}
 
 	// Resets all known instantiated spies.

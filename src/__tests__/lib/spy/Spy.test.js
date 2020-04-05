@@ -241,4 +241,20 @@ describe('lib/Spy', () => {
 		expect(mockContext.anotherFunctionToSpyOn).toBe(originalAnotherFunction);
 		anotherSpy.reset();
 	});
+
+	it('should correctly display active status when spying on methods', () => {
+		spy = new Spy(mockContext, 'toBeSpiedUpon');
+		expect(spy.active).toBe(true);
+
+		spy.reset();
+		expect(spy.active).toBe(false);
+	});
+
+	it('should correctly display active status when spying on non-method properties', () => {
+		spy = new Spy(mockContext, 'propToSpyOn');
+		expect(spy.active).toBe(true);
+
+		spy.reset();
+		expect(spy.active).toBe(false);
+	});
 });
