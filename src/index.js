@@ -1,6 +1,7 @@
 // @flow
-import spyOn from './lib/spy/spyOn';
+import spyOn, { resetAllSpies, resetSpy } from './lib/spy/spyOn';
+import object from './lib/utils/object';
 
-const otto = { spyOn };
+const otto = { object, resetAllSpies, resetSpy, spyOn };
 
 module.exports = otto;

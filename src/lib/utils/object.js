@@ -125,3 +125,5 @@ export function traverse(source: { ... }, path: string): mixed {
 
 	return val;
 }
+
+export default { clone, iterateAndCall, merge, mirrorProperties, traverse };
