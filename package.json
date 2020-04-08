@@ -10,6 +10,7 @@
 		"build": "rollup -c",
 		"build:watch": "rollup -c -w",
 		"clean": "rm -rf dist/*",
+		"docs": "jsdoc2md -c jsdoc2md.json --files src/*.js src/**/*.js > src/README.md",
 		"lint": "eslint --fix .",
 		"precommit": "lint-staged",
 		"test": "jest src --passWithNoTests",
@@ -35,7 +36,8 @@
 	"lint-staged": {
 		"*.{js,jsx}": [
 			"npm run lint",
-			"npm run test"
+			"npm run test",
+			"npm run docs"
 		],
 		"*.{json,md}": [
 			"prettier --write"
@@ -63,6 +65,8 @@
 		"husky": "^4.2.3",
 		"jest": "^25.1.0",
 		"jest-extended": "^0.11.5",
+		"jsdoc-babel": "^0.5.0",
+		"jsdoc-to-markdown": "^5.0.3",
 		"lint-staged": "^10.0.7",
 		"prettier": "^1.19.1",
 		"rollup": "^1.31.0",

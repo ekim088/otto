@@ -1,4 +1,8 @@
 // @flow
+/**
+ * A module of JS object utility functions. Namespaced at `otto.object`.
+ * @module otto/object
+ */
 
 /**
  * Creates a deep copy clone of the source object.

@@ -1,4 +1,8 @@
 // @flow
+/**
+ * Object property decoration module.
+ * @module decorateProperty
+ */
 import decorateFunction, {
 	isDecoratedFunction,
 	revertDecoratedFunction

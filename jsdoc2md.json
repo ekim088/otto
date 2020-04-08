@@ -1,0 +1,16 @@
+{
+	"source": {
+		"includePattern": ".+\\.js(doc|x)?$",
+		"excludePattern": ".+\\.(test|spec).js"
+	},
+	"plugins": ["plugins/markdown", "node_modules/jsdoc-babel"],
+	"babel": {
+		"extensions": ["js", "jsx"],
+		"ignore": ["**/*.(test|spec).js"],
+		"babelrc": false,
+		"presets": [
+			["@babel/preset-env", { "targets": { "node": true } }],
+			"@babel/preset-flow"
+		]
+	}
+}

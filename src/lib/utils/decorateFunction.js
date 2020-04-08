@@ -1,4 +1,8 @@
 // @flow
+/**
+ * Function decoration module.
+ * @module decorateFunction
+ */
 import { clone, mirrorProperties } from './object';
 import logger from './logger';
 import spyLogger, { deleteSpyLog } from './spyLogger';
@@ -28,7 +32,7 @@ type DecoratedFunctionsEntry = {|
 /**
  * Map of decorated function to original function for use in resetting
  * decorators.
- * NOTE: Be wary of this endlessly growing. Investigate ways to safely
+ * @todo Be wary of this endlessly growing. Investigate ways to safely
  * remove without losing the ability to locate the original function for a
  * directly/indirectly decorated function.
  */
@@ -106,6 +110,7 @@ export default function decorateFunction(
 	/**
 	 * Support decoration configuration directly on function if not passed
 	 * as an argument.
+	 * @ignore
 	 */
 	config = config || originalFunction || {};
 

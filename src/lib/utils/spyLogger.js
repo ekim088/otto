@@ -31,6 +31,7 @@ export type SpyLog = {|
 /**
  * Update record of interactions with the function or property. Initializes or
  * reapplies object's logging specific property to prevent overwriting.
+ * @ignore
  * @param {Object} config Log message configuration.
  */
 export default function spyLogger(config: SpyLog): void {
@@ -74,6 +75,7 @@ export default function spyLogger(config: SpyLog): void {
 /**
  * Deletes any properties set on object that have been used to log property
  * activity for Spy.
+ * @ignore
  * @param {Object} obj The object containing the property to spy on.
  * @param {string} propName The name of the property to spy on.
  */

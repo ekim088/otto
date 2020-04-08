@@ -2,6 +2,12 @@
 import logger from '../utils/logger';
 import type Spy from './Spy';
 
+/**
+ * Chainable module that allows for configuration of a Spy after it has been
+ * initially deployed. The self-referential property `and` can be used for
+ * natural language chaining.
+ * @see {@link Spy}
+ */
 export default class SpyOnModule {
 	// flow annotations
 	and: SpyOnModule;
@@ -13,15 +19,28 @@ export default class SpyOnModule {
 	spies: Array<Spy>;
 
 	/**
-	 * Monitor and respond to function calls and property value updates.
 	 * @constructor
 	 * @param {Object} obj The object containing the property to spy on.
 	 * @param {string} propName The name of the property to spy on.
 	 * @param {Array<Spy>} spies The instantiated spies.
 	 */
 	constructor(obj: { ... }, propName: ?string, spies: Array<Spy> = []) {
+		/**
+		 * The object being spied.
+		 * @type {Object}
+		 */
 		this.obj = obj;
+
+		/**
+		 * The name of the object property being spied.
+		 * @type {string|undefined}
+		 */
 		this.propName = propName;
+
+		/**
+		 * A list of spies deployed to the specified object location.
+		 * @type {Array<Spy>}
+		 */
 		this.spies = spies;
 
 		// apply self referential property for natural language chaining
@@ -92,6 +111,7 @@ export default class SpyOnModule {
  * @param {Object} obj The object containing the property to test.
  * @param {string} propName The name of the property to test.
  * @returns {boolean} Returns `true` if the object property is a function.
+ * @ignore
  */
 function isMethod(obj: { ... }, propName: ?string): boolean {
 	return (
