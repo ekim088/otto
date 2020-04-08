@@ -1,6 +1,7 @@
 // @flow
 /**
  * Function decoration module.
+ *
  * @module decorateFunction
  */
 import { clone, mirrorProperties } from './object';
@@ -32,6 +33,7 @@ type DecoratedFunctionsEntry = {|
 /**
  * Map of decorated function to original function for use in resetting
  * decorators.
+ *
  * @todo Be wary of this endlessly growing. Investigate ways to safely
  * remove without losing the ability to locate the original function for a
  * directly/indirectly decorated function.
@@ -46,12 +48,13 @@ const decoratedFunctions: Map<
  * i.e. object['functionName'], the method will automatically be replaced with
  * the decorated version of the method. A reference to the decorated method
  * will still be returned.
- * @param {Object|Function} objOrFxn Either the object containing a method to
+ *
+ * @param {object|Function} objOrFxn Either the object containing a method to
  * 	decorate or the function to decorate itself.
- * @param {string|Object} [fxnNameOrConfig] The name of the method to decorate
+ * @param {string|object} [fxnNameOrConfig] The name of the method to decorate
  * 	or configuration for function decoration if the function is passed as the
  * 	first argument.
- * @param {Object} [decoratorConfig] Configuration for function decoration if
+ * @param {object} [decoratorConfig] Configuration for function decoration if
  * 	the first two arguments are the object and name of function to decorate.
  * 	`after`: A function to call after the function to be decorated.
  * 	`before`: A function to call before the function to be decorated.
@@ -110,6 +113,7 @@ export default function decorateFunction(
 	/**
 	 * Support decoration configuration directly on function if not passed
 	 * as an argument.
+	 *
 	 * @ignore
 	 */
 	config = config || originalFunction || {};
@@ -177,6 +181,10 @@ export default function decorateFunction(
 		/**
 		 * Performs all tasks meant to be completed after completion of base
 		 * function call.
+		 *
+		 * @param {*} returnFromBase The return value from calling the original
+		 * 	function.
+		 * @returns {*} The return value from calling the original function.
 		 */
 		const onBaseFunctionCallComplete = (returnFromBase: mixed): any => {
 			logReturn = logReturn || clone(returnFromBase);
@@ -243,6 +251,7 @@ export default function decorateFunction(
 /**
  * Returns a boolean asserting whether a function has been decorated via
  * `decorateFunction`.
+ *
  * @param {Function} func The function to test for decoration.
  * @returns {boolean} `true` if the function has been decorated via
  * 	`decorateFunction`; otherwise `false`.
@@ -259,6 +268,7 @@ export function isDecoratedFunction(func: mixed): boolean {
  * supplied i.e. object['functionName'], the decorated method will automatically
  * be reverted to the original method. A reference to the original method will
  * still be returned.
+ *
  * @param {Function} decoratedFunction The decorated function to revert.
  * @returns {Function} The original function.
  */

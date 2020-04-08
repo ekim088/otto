@@ -1,6 +1,7 @@
 // @flow
 /**
  * Object property decoration module.
+ *
  * @module decorateProperty
  */
 import decorateFunction, {
@@ -29,9 +30,9 @@ type PropertyDescriptor<T> = {
  * Decorates a property's getter and setter to be spied upon.
  * NOTE: Immediately updates getter/setter methods to be spied. Returns a
  * reference to the original getter/setter so reset() can be defined in Spy.
- * @param {Object} obj The object containing the property to spy on.
+ *
+ * @param {object} obj The object containing the property to spy on.
  * @param {string} propName The name of the property to spy on.
- * @returns {Object} An object containing the original getter/setter if present.
  */
 export default function decorateProperty(obj: { ... }, propName: string): void {
 	const descriptor = Object.getOwnPropertyDescriptor(obj, propName);
@@ -132,7 +133,8 @@ export default function decorateProperty(obj: { ... }, propName: string): void {
 
 /**
  * Reverts property getter and setter decoration.
- * @param {Object} obj The object containing the property to revert.
+ *
+ * @param {object} obj The object containing the property to revert.
  * @param {string} propName The name of the property to revert.
  */
 export function revertDecoratedProperty(obj: { ... }, propName: string): void {

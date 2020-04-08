@@ -37,7 +37,7 @@ static methods applied to <code>otto</code>.</p>
 - [otto](#module_otto)
   - [.spyOn(obj, [propName])](#module_otto.spyOn) ⇒ [<code>SpyOnModule</code>](#SpyOnModule)
   - [.resetSpy(obj, [propName])](#module_otto.resetSpy)
-  - [.resetAllSpies(obj, [propName])](#module_otto.resetAllSpies)
+  - [.resetAllSpies()](#module_otto.resetAllSpies)
 
 <a name="module_otto.spyOn"></a>
 
@@ -50,7 +50,7 @@ static methods applied to <code>otto</code>.</p>
 
 | Param      | Type                | Description                                          |
 | ---------- | ------------------- | ---------------------------------------------------- |
-| obj        | <code>Object</code> | <p>The object containing the property to spy on.</p> |
+| obj        | <code>object</code> | <p>The object containing the property to spy on.</p> |
 | [propName] | <code>string</code> | <p>The name of the property to spy on.</p>           |
 
 <a name="module_otto.resetSpy"></a>
@@ -63,22 +63,16 @@ static methods applied to <code>otto</code>.</p>
 
 | Param      | Type                | Description                                          |
 | ---------- | ------------------- | ---------------------------------------------------- |
-| obj        | <code>Object</code> | <p>The object containing the property to spy on.</p> |
+| obj        | <code>object</code> | <p>The object containing the property to spy on.</p> |
 | [propName] | <code>string</code> | <p>The name of the property to spy on.</p>           |
 
 <a name="module_otto.resetAllSpies"></a>
 
-### otto.resetAllSpies(obj, [propName])
+### otto.resetAllSpies()
 
 <p>Resets all generated spies.</p>
 
-**Kind**: static method of [<code>otto</code>](#module_otto)
-
-| Param      | Type                | Description                                          |
-| ---------- | ------------------- | ---------------------------------------------------- |
-| obj        | <code>Object</code> | <p>The object containing the property to spy on.</p> |
-| [propName] | <code>string</code> | <p>The name of the property to spy on.</p>           |
-
+**Kind**: static method of [<code>otto</code>](#module_otto)  
 <a name="module_decorateFunction"></a>
 
 ## decorateFunction
@@ -119,9 +113,9 @@ will still be returned.</p>
 
 | Param             | Type                                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ----------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| objOrFxn          | <code>Object</code> \| <code>function</code> | <p>Either the object containing a method to decorate or the function to decorate itself.</p>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| [fxnNameOrConfig] | <code>string</code> \| <code>Object</code>   | <p>The name of the method to decorate or configuration for function decoration if the function is passed as the first argument.</p>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| [decoratorConfig] | <code>Object</code>                          | <p>Configuration for function decoration if the first two arguments are the object and name of function to decorate. <code>after</code>: A function to call after the function to be decorated. <code>before</code>: A function to call before the function to be decorated. <code>callThrough</code>: A boolean indicating whether to progresss through the function once called. Defaults to <code>true</code>. <code>fake</code>: A function to call in place of the function to be decorated. <code>thisArg</code>: The value to be passed as the <code>this</code> parameter to the target function(s) when the decorated function is called. Also applies to <code>after</code>, <code>before</code>, and <code>fake</code>. Defaults to <code>this</code> if decorating a prototype method or the <code>objOrFxn</code> argument pased to <code>decorateFunction</code>.</p> |
+| objOrFxn          | <code>object</code> \| <code>function</code> | <p>Either the object containing a method to decorate or the function to decorate itself.</p>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| [fxnNameOrConfig] | <code>string</code> \| <code>object</code>   | <p>The name of the method to decorate or configuration for function decoration if the function is passed as the first argument.</p>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| [decoratorConfig] | <code>object</code>                          | <p>Configuration for function decoration if the first two arguments are the object and name of function to decorate. <code>after</code>: A function to call after the function to be decorated. <code>before</code>: A function to call before the function to be decorated. <code>callThrough</code>: A boolean indicating whether to progresss through the function once called. Defaults to <code>true</code>. <code>fake</code>: A function to call in place of the function to be decorated. <code>thisArg</code>: The value to be passed as the <code>this</code> parameter to the target function(s) when the decorated function is called. Also applies to <code>after</code>, <code>before</code>, and <code>fake</code>. Defaults to <code>this</code> if decorating a prototype method or the <code>objOrFxn</code> argument pased to <code>decorateFunction</code>.</p> |
 
 <a name="module_decorateFunction..isDecoratedFunction"></a>
 
@@ -161,23 +155,22 @@ still be returned.</p>
 <p>Object property decoration module.</p>
 
 - [decorateProperty](#module_decorateProperty)
-  - [~decorateProperty(obj, propName)](#module_decorateProperty..decorateProperty) ⇒ <code>Object</code>
+  - [~decorateProperty(obj, propName)](#module_decorateProperty..decorateProperty)
   - [~revertDecoratedProperty(obj, propName)](#module_decorateProperty..revertDecoratedProperty)
 
 <a name="module_decorateProperty..decorateProperty"></a>
 
-### decorateProperty~decorateProperty(obj, propName) ⇒ <code>Object</code>
+### decorateProperty~decorateProperty(obj, propName)
 
 <p>Decorates a property's getter and setter to be spied upon.
 NOTE: Immediately updates getter/setter methods to be spied. Returns a
 reference to the original getter/setter so reset() can be defined in Spy.</p>
 
-**Kind**: inner method of [<code>decorateProperty</code>](#module_decorateProperty)  
-**Returns**: <code>Object</code> - <p>An object containing the original getter/setter if present.</p>
+**Kind**: inner method of [<code>decorateProperty</code>](#module_decorateProperty)
 
 | Param    | Type                | Description                                          |
 | -------- | ------------------- | ---------------------------------------------------- |
-| obj      | <code>Object</code> | <p>The object containing the property to spy on.</p> |
+| obj      | <code>object</code> | <p>The object containing the property to spy on.</p> |
 | propName | <code>string</code> | <p>The name of the property to spy on.</p>           |
 
 <a name="module_decorateProperty..revertDecoratedProperty"></a>
@@ -190,7 +183,7 @@ reference to the original getter/setter so reset() can be defined in Spy.</p>
 
 | Param    | Type                | Description                                          |
 | -------- | ------------------- | ---------------------------------------------------- |
-| obj      | <code>Object</code> | <p>The object containing the property to revert.</p> |
+| obj      | <code>object</code> | <p>The object containing the property to revert.</p> |
 | propName | <code>string</code> | <p>The name of the property to revert.</p>           |
 
 <a name="module_otto/object"></a>
@@ -201,10 +194,10 @@ reference to the original getter/setter so reset() can be defined in Spy.</p>
 
 - [otto/object](#module_otto/object)
   - [~clone(source)](#module_otto/object..clone) ⇒ <code>\*</code>
-  - [~iterateAndCall(source, handler, [condition])](#module_otto/object..iterateAndCall) ⇒ <code>Object</code>
+  - [~iterateAndCall(source, handler, [condition])](#module_otto/object..iterateAndCall) ⇒ <code>object</code>
   - [~merge(target, ...sources)](#module_otto/object..merge) ⇒ <code>\*</code>
   - [~mirrorProperties(target, ...sources)](#module_otto/object..mirrorProperties) ⇒ <code>\*</code>
-  - [~traverse(source, path)](#module_otto/object..traverse)
+  - [~traverse(source, path)](#module_otto/object..traverse) ⇒ <code>\*</code>
 
 <a name="module_otto/object..clone"></a>
 
@@ -221,7 +214,7 @@ reference to the original getter/setter so reset() can be defined in Spy.</p>
 
 <a name="module_otto/object..iterateAndCall"></a>
 
-### otto/object~iterateAndCall(source, handler, [condition]) ⇒ <code>Object</code>
+### otto/object~iterateAndCall(source, handler, [condition]) ⇒ <code>object</code>
 
 <p>Iterates over source object and calls sets value of property to result of
 calling a handler function on each property value. The handler function will
@@ -230,11 +223,11 @@ function can be passed to test the property value against to determine
 whether to call the handler function on that property.</p>
 
 **Kind**: inner method of [<code>otto/object</code>](#module_otto/object)  
-**Returns**: <code>Object</code> - <p>The updated source object.</p>
+**Returns**: <code>object</code> - <p>The updated source object.</p>
 
 | Param       | Type                  | Description                                                                                                                             |
 | ----------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| source      | <code>Object</code>   | <p>The object to iterate over.</p>                                                                                                      |
+| source      | <code>object</code>   | <p>The object to iterate over.</p>                                                                                                      |
 | handler     | <code>function</code> | <p>The function to call on each property value. The value of the property will be updated if the handler function returns a result.</p> |
 | [condition] | <code>function</code> | <p>An optional function to call before calling the handler function, where truthy results will initiate a call to the handler.</p>      |
 
@@ -269,11 +262,13 @@ type or function into the target will overwrite the target argument.</p>
 
 <a name="module_otto/object..traverse"></a>
 
-### otto/object~traverse(source, path)
+### otto/object~traverse(source, path) ⇒ <code>\*</code>
 
 <p>Safely navigates to a nested object property.</p>
 
-**Kind**: inner method of [<code>otto/object</code>](#module_otto/object)
+**Kind**: inner method of [<code>otto/object</code>](#module_otto/object)  
+**Returns**: <code>\*</code> - <p>The value at the specified path, or <code>undefined</code> if path cannot
+be reached.</p>
 
 | Param  | Type                | Description                                                                         |
 | ------ | ------------------- | ----------------------------------------------------------------------------------- |
@@ -307,7 +302,7 @@ type or function into the target will overwrite the target argument.</p>
 
 | Param    | Type                | Description                                          |
 | -------- | ------------------- | ---------------------------------------------------- |
-| obj      | <code>Object</code> | <p>The object containing the property to spy on.</p> |
+| obj      | <code>object</code> | <p>The object containing the property to spy on.</p> |
 | propName | <code>string</code> | <p>The name of the property to spy on.</p>           |
 
 <a name="Spy+active"></a>
@@ -342,7 +337,7 @@ on object methods.</p>
 
 | Param    | Type                | Description                                          |
 | -------- | ------------------- | ---------------------------------------------------- |
-| obj      | <code>Object</code> | <p>The object containing the property to spy on.</p> |
+| obj      | <code>object</code> | <p>The object containing the property to spy on.</p> |
 | propName | <code>string</code> | <p>The name of the property to spy on.</p>           |
 
 <a name="Spy.resetAllSpies"></a>
@@ -362,7 +357,7 @@ on object methods.</p>
 
 | Param        | Type                | Description                                          |
 | ------------ | ------------------- | ---------------------------------------------------- |
-| obj          | <code>Object</code> | <p>The object containing the function to spy on.</p> |
+| obj          | <code>object</code> | <p>The object containing the function to spy on.</p> |
 | functionName | <code>string</code> | <p>The name of the function to spy on.</p>           |
 
 <a name="Spy..decoratePropertyForSpy"></a>
@@ -375,7 +370,7 @@ on object methods.</p>
 
 | Param    | Type                | Description                                          |
 | -------- | ------------------- | ---------------------------------------------------- |
-| obj      | <code>Object</code> | <p>The object containing the property to spy on.</p> |
+| obj      | <code>object</code> | <p>The object containing the property to spy on.</p> |
 | propName | <code>string</code> | <p>The name of the property to spy on.</p>           |
 
 <a name="SpyOnModule"></a>
@@ -391,7 +386,7 @@ natural language chaining.</p>
 
 - [SpyOnModule](#SpyOnModule)
   - [new SpyOnModule(obj, propName, spies)](#new_SpyOnModule_new)
-  - [.obj](#SpyOnModule+obj) : <code>Object</code>
+  - [.obj](#SpyOnModule+obj) : <code>object</code>
   - [.propName](#SpyOnModule+propName) : <code>string</code> \| <code>undefined</code>
   - [.spies](#SpyOnModule+spies) : [<code>Array.&lt;Spy&gt;</code>](#Spy)
   - [.callAfter(afterFxn)](#SpyOnModule+callAfter) ⇒ [<code>SpyOnModule</code>](#SpyOnModule)
@@ -404,13 +399,13 @@ natural language chaining.</p>
 
 | Param    | Type                                   | Description                                          |
 | -------- | -------------------------------------- | ---------------------------------------------------- |
-| obj      | <code>Object</code>                    | <p>The object containing the property to spy on.</p> |
+| obj      | <code>object</code>                    | <p>The object containing the property to spy on.</p> |
 | propName | <code>string</code>                    | <p>The name of the property to spy on.</p>           |
 | spies    | [<code>Array.&lt;Spy&gt;</code>](#Spy) | <p>The instantiated spies.</p>                       |
 
 <a name="SpyOnModule+obj"></a>
 
-### spyOnModule.obj : <code>Object</code>
+### spyOnModule.obj : <code>object</code>
 
 <p>The object being spied.</p>
 

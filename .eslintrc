@@ -3,9 +3,10 @@
 		"airbnb-base",
 		"prettier",
 		"plugin:flowtype/recommended",
-		"plugin:jest/recommended"
+		"plugin:jest/recommended",
+		"plugin:jsdoc/recommended"
 	],
-	"plugins": ["flowtype", "jest", "prettier"],
+	"plugins": ["flowtype", "jest", "jsdoc", "prettier"],
 	"rules": {
 		"no-underscore-dangle": ["error", { "allow": ["_spy_"] }],
 		"no-use-before-define": ["error", { "functions": false, "classes": false }],

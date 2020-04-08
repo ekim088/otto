@@ -9,8 +9,9 @@ const spyManifest: Map<{ ... }, { [string]: Spy }> = new Map();
 
 /**
  * Spies on the requested object property.
+ *
  * @memberof module:otto
- * @param {Object} obj The object containing the property to spy on.
+ * @param {object} obj The object containing the property to spy on.
  * @param {string} [propName] The name of the property to spy on.
  * @returns {SpyOnModule} Supports chaining of Spy configuration methods.
  */
@@ -19,8 +20,9 @@ export default function spyOn(obj: { ... }, propName?: string): SpyOnModule {
 
 	/**
 	 * Handler to spy on all object properties.
+	 *
 	 * @ignore
-	 * @param {Object} src The object to spy on.
+	 * @param {object} src The object to spy on.
 	 * @param {string} [key] The current object property name.
 	 */
 	function initializeSpies(src: { ... }, key: ?string): void {
@@ -51,8 +53,9 @@ export default function spyOn(obj: { ... }, propName?: string): SpyOnModule {
 
 /**
  * Adds a record of a new Spy to the spy manifest.
+ *
  * @ignore
- * @param {Object} obj The object containing the spy.
+ * @param {object} obj The object containing the spy.
  * @param {string} propName The name of the property containing the spy.
  * @param {Spy} spy The spy to add to the manifest.
  */
@@ -64,8 +67,9 @@ function addToSpyManifest(obj: { ... }, propName: string, spy: Spy): void {
 
 /**
  * Retrieves a Spy from the spy manifest.
+ *
  * @ignore
- * @param {Object} obj The object containing the spy.
+ * @param {object} obj The object containing the spy.
  * @param {string} propName The name of the property containing the spy.
  * @returns {Spy} The Spy watching the object property. Returns `undefined` if
  * 	Spy is unavailable.
@@ -77,15 +81,17 @@ function getSpyFromManifest(obj: { ... }, propName: string): ?Spy {
 
 /**
  * Resets a spy on a given property or spies on an object.
+ *
  * @memberof module:otto
- * @param {Object} obj The object containing the property to spy on.
+ * @param {object} obj The object containing the property to spy on.
  * @param {string} [propName] The name of the property to spy on.
  */
 export function resetSpy(obj: { ... }, propName?: string): void {
 	/**
 	 * Handler to spy on all object properties.
+	 *
 	 * @ignore
-	 * @param {Object} src The object to spy on.
+	 * @param {object} src The object to spy on.
 	 * @param {string} [key] The current object property name.
 	 */
 	function resetSpies(src: { ... }, key: ?string): void {
@@ -110,9 +116,8 @@ export function resetSpy(obj: { ... }, propName?: string): void {
 
 /**
  * Resets all generated spies.
+ *
  * @memberof module:otto
- * @param {Object} obj The object containing the property to spy on.
- * @param {string} [propName] The name of the property to spy on.
  */
 export function resetAllSpies(): void {
 	Spy.resetAllSpies();
